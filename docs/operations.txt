@@ -1,0 +1,42 @@
+POST /add
+{
+	path: string;
+	IEnumerable<string> names;
+}
+
+POST /delete
+{
+	path: string;
+	IEnumerable<string> names
+}
+
+POST /link
+{
+	linkType: string;
+	fromPath: string;
+	toPath: string;
+}
+
+POST /payload
+{
+	string path;
+	string payload;
+}
+
+GET /payload
+{
+	string path;
+}
+returns string
+
+GET /inLinks
+{
+	path: string;
+}
+returns IEnumerable<{linkType, path}>
+
+GET /outLinks
+{
+	path: string;
+}
+returns IEnumerable<{linkType, path}>
