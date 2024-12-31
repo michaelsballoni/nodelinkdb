@@ -1,14 +1,16 @@
-POST /add
-{
-	path: string;
-	IEnumerable<string> names;
-}
+POST /add/{path}
+	Dictionary<{name string, payload string?}> names;
 
-POST /delete
-{
-	path: string;
-	IEnumerable<string> names
-}
+POST /delete/{path}
+
+POST /payload/{path}
+	string json;
+
+GET /payload/{path}
+	returns string
+
+GET /dir/{path}
+	return IEnumerable<string>
 
 POST /link
 {
@@ -17,26 +19,21 @@ POST /link
 	toPath: string;
 }
 
-POST /payload
+POST /unlink
 {
-	string path;
-	string payload;
+	linkType: string;
+	fromPath: string;
+	toPath: string;
 }
-
-GET /payload
-{
-	string path;
-}
-returns string
 
 GET /inLinks
 {
 	path: string;
 }
-returns IEnumerable<{linkType, path}>
+returns IEnumerable<path>
 
 GET /outLinks
 {
 	path: string;
 }
-returns IEnumerable<{linkType, path}>
+returns IEnumerable<path>

@@ -1,17 +1,11 @@
 node
 ====
-id
 parentid
-namestringid
-typeid
-payload
-created
-lastmodified
-
-nodetypes
-=========
 id
-name
+namestringid
+payloadjson null
+created
+lastpayloadmodified
 
 strings
 =======
@@ -24,9 +18,20 @@ id
 fromnodeid
 tonodeid
 typeid
-created
 
 linktypes
 =========
 id
 name
+
+stringprops
+=====
+id
+namestringid
+valstringid
+
+numberprops
+=====
+id
+namestringid
+valnumber
