@@ -1,37 +1,31 @@
-node
-====
-parentid
-id
-namestringid
-payloadjson null
-created
-lastpayloadmodified
-
 strings
 =======
-id
-val
+id (uniq)
+val (primary key)
 
-link
-====
+nodes
+=====
+parentid
 id
+typestrid
+namestrid
+created
+lastmodified
+idx: parentid, id (uniq)
+idx: id (primary key)
+
+links
+=====
 fromnodeid
 tonodeid
-typeid
+typestrid
+idx: fromnodeid, tonodeid, typestrid (uniq)
+idx: tonodeid, fromnodeid, typestrid (uniq)
 
-linktypes
-=========
-id
-name
-
-stringprops
+props
 =====
-id
-namestringid
-valstringid
-
-numberprops
-=====
-id
-namestringid
-valnumber
+nodeid
+namestrid
+valstrid
+idx: valstrid, namestrid, nodeid (uniq)
+idx: nodeid
