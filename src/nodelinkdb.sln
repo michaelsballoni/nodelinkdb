@@ -4,10 +4,16 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nldb", "nldb\nldb.vcxproj", "{AA4B0979-FE79-431B-91CE-9696A53A6B40}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9294DD58-C0DA-43AC-9279-E67C702903FB} = {9294DD58-C0DA-43AC-9279-E67C702903FB}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nldblib", "nldblib\nldblib.vcxproj", "{9294DD58-C0DA-43AC-9279-E67C702903FB}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nldbtests", "nldbtests\nldbtests.vcxproj", "{A8E00B7F-AC35-46E3-9E01-1A8E84BA70B6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9294DD58-C0DA-43AC-9279-E67C702903FB} = {9294DD58-C0DA-43AC-9279-E67C702903FB}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
