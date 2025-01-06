@@ -13,7 +13,7 @@ namespace nldb
 		TEST_METHOD(TestStrings)
 		{
 			db db("tests.strings.db");
-			strings::init(db);
+			strings::setup(db);
 
 			try {
 				strings::get_val(db, -1200);

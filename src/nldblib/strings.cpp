@@ -4,9 +4,9 @@
 
 using namespace nldb;
 
-void strings::init(db& db) {
+void strings::setup(db& db) {
 	db.execSql(L"DROP TABLE IF EXISTS strings", {});
-	db.execSql(L"CREATE TABLE strings (id INTEGER PRIMARY KEY, val STRING NOT NULL)", {});
+	db.execSql(L"CREATE TABLE strings (id INTEGER PRIMARY KEY, val STRING UNIQUE NOT NULL)", {});
 	db.execSql(L"INSERT INTO strings (id, val) VALUES (0, '')", {});
 }
 
@@ -21,7 +21,7 @@ int64_t strings::get_id(db& db, const std::wstring& str) {
 std::wstring strings::get_val(db& db, int64_t id) {
 	auto opt = db.execScalarString(L"SELECT val FROM strings WHERE id = @id", { { L"@id", (double)id } });
 	if (!opt.has_value())
-		throw nldberr("String not found");
+		throw nldberr("String not found: " + std::to_string(id));
 	else
 		return opt.value();
 }

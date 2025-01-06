@@ -7,7 +7,7 @@ namespace nldb
 	class strings
 	{
 	public:
-		static void init(db& db);
+		static void setup(db& db);
 
 		static int64_t get_id(db& db, const std::wstring& str);
 		static std::wstring get_val(db& db, int64_t id);
