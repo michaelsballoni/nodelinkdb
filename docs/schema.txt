@@ -1,18 +1,18 @@
 strings
 =======
-id (uniq)
-val (primary key)
+id (integer primary key)
+val (uniq)
 
 nodes
 =====
 parentid
-id
+id (integer primary key)
 typestrid
 namestrid
 created
 lastmodified
 idx: parentid, id (uniq)
-idx: id (primary key)
+idx: parentid, namestrid (uniq)
 
 links
 =====
@@ -27,5 +27,6 @@ props
 nodeid
 namestrid
 valstrid
+numval: number
 idx: valstrid, namestrid, nodeid (uniq)
 idx: nodeid
