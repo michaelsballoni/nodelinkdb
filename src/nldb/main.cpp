@@ -6,6 +6,9 @@
 
 #include <stdio.h>
 
+#include <filesystem>
+namespace fs = std::filesystem;
+
 using namespace nldb;
 
 int wmain(int argc, wchar_t* argv[]) {
@@ -18,6 +21,7 @@ int wmain(int argc, wchar_t* argv[]) {
 			printf("string-id \"one string to get the ID of\"\n");
 			printf("string-val \"string ID to get the value for\"\n");
 			printf("string-vals \"one string ID to get the value of\" \"another string ID to get the value of\"\n");
+			printf("load \"path to directory to load into the DB\"");
 			return 0;
 		}
 
@@ -59,7 +63,7 @@ int wmain(int argc, wchar_t* argv[]) {
 
 		if (cmd == L"string-vals") {
 			if (args.empty())
-				throw nldberr("string-vals: Specify one or mroe string IDs to get the value of");
+				throw nldberr("string-vals: Specify one or more string IDs to get the value of");
 
 			std::vector<int64_t> ids;
 			for (auto id_str : args)
@@ -71,6 +75,19 @@ int wmain(int argc, wchar_t* argv[]) {
 				std::wstring val = id_vals[id];
 				printf("ID: %I64d - Val: %S\n", id, val.c_str());
 			}
+			return 0;
+		}
+
+		if (cmd == L"load") {
+			if (args.size() != 1)
+				throw nldberr("load: Specify one path to a directory to load into the DB");
+			std::wstring dir_path = args[0];
+			printf("Directory: %S\n", dir_path.c_str());
+
+			for (auto const& dir_entry : fs::recursive_directory_iterator(dir_path)) {
+				dir_entry
+			}
+
 			return 0;
 		}
 
