@@ -42,6 +42,12 @@
     <ClInclude Include="strings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="paths.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nodes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -57,6 +63,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="strings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="paths.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nodes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

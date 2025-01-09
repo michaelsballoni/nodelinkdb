@@ -32,10 +32,15 @@ int64_t strings::get_id(db& db, const std::wstring& str) {
 		return id;
 	}
 	else {
-		int64_t id = db.execInsert(L"INSERT INTO strings (val) VALUES (@val)", { { L"@val", str } });;
-		std::unique_lock<std::shared_mutex> write_lock(g_toIdCacheLock);
-		g_toIdCache.insert({ str, id });
-		return id;
+		try {
+			int64_t id = db.execInsert(L"INSERT INTO strings (val) VALUES (@val)", { { L"@val", str } });;
+			std::unique_lock<std::shared_mutex> write_lock(g_toIdCacheLock);
+			g_toIdCache.insert({ str, id });
+			return id;
+		}
+		catch (const nldberr&) {
+			return get_id(db, str); // loop around and try again
+		}
 	}
 }
 

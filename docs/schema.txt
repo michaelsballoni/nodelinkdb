@@ -1,19 +1,3 @@
-strings
-=======
-id (integer primary key)
-val (uniq)
-
-nodes
-=====
-parentid
-id (integer primary key)
-typestrid
-namestrid
-created
-lastmodified
-idx: parentid, id (uniq)
-idx: parentid, namestrid (uniq)
-
 links
 =====
 fromnodeid

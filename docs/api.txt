@@ -7,38 +7,6 @@ typedef  Lock;
 typedef std::unique_lock< Lock >  WriteLock; // C++ 11
 typedef std::shared_lock< Lock >  ReadLock;  // C++ 14
 
-class node_ctxt {
-public:
-	// database connection: borrow from 4db
-	
-	std::wstring get_string(size_t id) {
-		if (id == 0)
-			return wstring();
-		
-		std::lock_guard lock(m_strcache_by_id_mutex);
-		look in cache
-		look in db
-		throw
-	}
-	
-	size_t string_id(const std::wstring& str) {
-		if (str.empty())
-			return 0;
-			
-		std::lock_guard lock(m_strcache_by_val_mutex);
-		look in cache
-		look in db
-		write to db
-		write to cache
-	}
-	
-	std::mutex m_strcache_by_id_mutex;
-	std::unordered_map<size_t, std::wstring> m_strcache_by_id;
-	
-	std::mutex m_strcache_by_val_mutex;
-	std::unordered_map<std::wstring, size_t> m_strcache_by_val;
-};
-
 class node {
 public:
 	node(node_ctxt& ctxt, size_t parentId, size_t id, size_t typeId, size_t nameStringId);

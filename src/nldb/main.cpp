@@ -1,5 +1,6 @@
 #include "includes.h"
 #include "strings.h"
+#include "nodes.h"
 #include "db.h"
 
 #pragma comment(lib, "nldblib.lib")
@@ -39,6 +40,9 @@ int wmain(int argc, wchar_t* argv[]) {
 
 			printf("strings...");
 			strings::setup(db);
+
+			printf("nodes...");
+			nodes::setup(db);
 
 			printf("\nAll done.\n");
 			return 0;
@@ -85,7 +89,7 @@ int wmain(int argc, wchar_t* argv[]) {
 			printf("Directory: %S\n", dir_path.c_str());
 
 			for (auto const& dir_entry : fs::recursive_directory_iterator(dir_path)) {
-				dir_entry
+				// FORNOW
 			}
 
 			return 0;
