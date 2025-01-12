@@ -10,7 +10,7 @@ std::vector<node> paths::get_nodes(db& db, const std::wstring& path) {
 
 	std::vector<std::wstring> splits;
 	std::wstring builder;
-	for (auto c : path) {
+	for (wchar_t c : path) {
 		if (c == '/') {
 			splits.push_back(builder);
 			builder.clear();
@@ -45,14 +45,29 @@ std::vector<node> paths::get_nodes(db& db, const std::wstring& path) {
 }
 
 std::wstring paths::get_path(db& db, const node& cur) {
-	std::vector<int64_t> seen_node_ids;
-	seen_node_ids.push_back(cur.m_id);
+	std::vector<int64_t> path_str_ids;
 
-	// FORNOW
-	(void)db;
-	return L"";
-}
+	std::unordered_set<int64_t> seen_node_ids;
+	seen_node_ids.insert(cur.m_id);
 
-void paths::flush_caches() {
+	node cur_node = cur;
+	while (cur_node.m_parent_id > 0) {
+		path_str_ids.push_back(cur_node.m_name_string_id);
+		cur_node = nodes::get_parent_node(db, cur_node.m_id);
+		if (seen_node_ids.find(cur_node.m_id) != seen_node_ids.end())
+			break;
+		else
+			seen_node_ids.insert(cur.m_id);
+	}
 
+	std::reverse(path_str_ids.begin(), path_str_ids.end());
+
+	auto strs_map = strings::get_vals(db, path_str_ids);
+
+	std::wstring path_str;
+	for (int64_t path_str_id : path_str_ids) {
+		path_str += L'/';
+		path_str += strs_map[path_str_id];
+	}
+	return path_str;
 }

@@ -70,12 +70,11 @@ int wmain(int argc, wchar_t* argv[]) {
 				throw nldberr("string-vals: Specify one or more string IDs to get the value of");
 
 			std::vector<int64_t> ids;
-			for (auto id_str : args)
+			for (const std::wstring& id_str : args)
 				ids.push_back(_wtoi64(id_str.c_str()));
 
 			auto id_vals = strings::get_vals(db, ids);
-
-			for (auto id : ids) {
+			for (int64_t id : ids) {
 				std::wstring val = id_vals[id];
 				printf("ID: %I64d - Val: %S\n", id, val.c_str());
 			}

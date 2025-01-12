@@ -43,7 +43,7 @@ bool nldb::isWord(const std::wstring& str)
     if (!std::isalpha(str[0]))
         return false;
 
-    for (auto c : str)
+    for (wchar_t c : str)
     {
         if (!std::isalnum(c) && c != '_' && c != '-')
             return false;
@@ -55,7 +55,7 @@ bool nldb::isWord(const std::wstring& str)
 std::wstring nldb::toLower(const std::wstring& str)
 {
     std::wstring retVal;
-    for (auto c : str)
+    for (wchar_t c : str)
         retVal += towlower(c);
     return retVal;
 }
@@ -117,7 +117,7 @@ std::wstring nldb::cleanseName(const std::wstring& name)
 std::wstring nldb::join(const std::vector<std::wstring>& strs, const wchar_t* seperator)
 {
     std::wstring retVal;
-    for (const auto& str : strs)
+    for (const std::wstring& str : strs)
     {
         if (!retVal.empty())
             retVal += seperator;
@@ -144,15 +144,11 @@ std::vector<std::wstring> nldb::extractParamNames(const std::wstring& sql)
         size_t idx = at + 1;
         while (idx < sql.length())
         {
-            auto c = sql[idx++];
+            wchar_t c = sql[idx++];
             if (iswalnum(c) || c == '_')
-            {
                 sb += c;
-            }
             else
-            {
                 break;
-            }
         }
 
         if (!sb.empty())

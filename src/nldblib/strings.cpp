@@ -80,7 +80,7 @@ std::unordered_map<int64_t, std::wstring> strings::get_vals(db& db, const std::v
 	std::wstring ids_str;
 	{
 		std::shared_lock<std::shared_mutex> read_lock(g_toValCacheLock);
-		for (auto id : ids) {
+		for (int64_t id : ids) {
 			auto it = g_toValCache.find(id);
 			if (it != g_toValCache.end()) {
 				ret_val[id] = it->second;
@@ -106,7 +106,7 @@ std::unordered_map<int64_t, std::wstring> strings::get_vals(db& db, const std::v
 		}
 	}
 	
-	for (auto id : ids)
+	for (int64_t id : ids)
 		if (ret_val.find(id) == ret_val.end())
 			throw nldberr("String not found: " + std::to_string(id));
 

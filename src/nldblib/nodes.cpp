@@ -14,8 +14,8 @@ void nodes::setup(db& db) {
 		L"parent_id INTEGER NOT NULL DEFAULT 0, " 
 		L"type_string_id INTEGER NOT NULL DEFAULT 0, " 
 		L"name_string_id INTEGER NOT NULL DEFAULT 0, "
-		L"created NUMBER NOT NULL DEFAULT unixepoch('now','subsec'), " 
-		L"last_modified NUMBER NOT NULL DEFAULT unixepoch('now','subsec')" 
+		L"created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " 
+		L"last_modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP" 
 		L")", 
 	{});
 	
@@ -47,9 +47,36 @@ std::optional<node> nodes::get_node_in_parent(db& db, int64_t parentNodeId, int6
 	return node(id, parentNodeId, nameStringId, type_string_id);
 }
 
-std::optional<node> nodes::get_parent_node(db& db, int64_t nodeId) {
-	// FORNOW
-	(void)db;
-	(void)nodeId;
-	return std::nullopt;
+node nodes::get_parent_node(db& db, int64_t nodeId) {
+
+	auto reader =
+		db.execReader
+		(
+			L"SELECT id, parent_id, name_string_id, type_string_id FROM nodes WHERE id = (SELECT parent_id FROM nodes WHERE id = @id)",
+			{ { L"@id", (double)nodeId } }
+		);
+	if (!reader->read())
+		throw nldberr("Parent not found for node: " + std::to_string(nodeId));
+
+	int64_t id = reader->getInt64(0);
+	int64_t parent_id = reader->getInt64(1);
+	int64_t name_string_id = reader->getInt64(2);
+	int64_t type_string_id = reader->getInt64(3);
+
+	return node(id, parent_id, name_string_id, type_string_id);
+}
+
+node nodes::create(db& db, int64_t parentNodeId, int64_t nameStringId, int64_t typeStringId) {
+	int64_t new_id =
+		db.execInsert
+		(
+			L"INSERT INTO nodes (parent_id, name_string_id, type_string_id) VALUES (@parent_id, @name_string_id, @type_string_id)",
+			{
+				{ L"@parent_id", (double)parentNodeId },
+				{ L"@name_string_id", (double)nameStringId },
+				{ L"@type_string_id", (double)typeStringId },
+			}
+
+		);
+	return node(new_id, parentNodeId, nameStringId, typeStringId);
 }

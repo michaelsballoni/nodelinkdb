@@ -24,7 +24,7 @@ namespace nldb
 
     std::wstring dbreader::getString(unsigned idx)
     {
-        auto str = sqlite3_column_text(m_stmt, idx);
+        const unsigned char* str = sqlite3_column_text(m_stmt, idx);
         if (str != nullptr)
             return toWideStr(str);
 
@@ -61,7 +61,7 @@ namespace nldb
         case SQLITE_BLOB:
             return toWideStr("blob");
         default:
-            auto str = sqlite3_column_text(m_stmt, idx);
+            const unsigned char* str = sqlite3_column_text(m_stmt, idx);
             if (str != nullptr)
                 return toWideStr(str);
             else
