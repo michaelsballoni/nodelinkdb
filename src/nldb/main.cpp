@@ -22,7 +22,7 @@ int wmain(int argc, wchar_t* argv[]) {
 			printf("string-id \"one string to get the ID of\"\n");
 			printf("string-val \"string ID to get the value for\"\n");
 			printf("string-vals \"one string ID to get the value of\" \"another string ID to get the value of\"\n");
-			printf("load \"path to directory to load into the DB\"");
+			printf("load \"path to directory to load into the DB\"\n");
 			return 0;
 		}
 
@@ -88,7 +88,12 @@ int wmain(int argc, wchar_t* argv[]) {
 			printf("Directory: %S\n", dir_path.c_str());
 
 			for (auto const& dir_entry : fs::recursive_directory_iterator(dir_path)) {
-				// FORNOW
+				auto entry_path = dir_entry.path();
+
+				// FORNOW - Update what we find
+				for (std::wstring path_part : entry_path)
+					printf("/ %S ", path_part.c_str());
+				printf("\n");
 			}
 
 			return 0;

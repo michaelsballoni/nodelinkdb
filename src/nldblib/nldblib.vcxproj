@@ -152,6 +152,7 @@
     <ClInclude Include="db.h" />
     <ClInclude Include="dbreader.h" />
     <ClInclude Include="includes.h" />
+    <ClInclude Include="node.h" />
     <ClInclude Include="nodes.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="strings.h" />
