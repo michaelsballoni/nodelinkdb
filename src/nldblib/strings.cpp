@@ -11,6 +11,8 @@ void strings::setup(db& db) {
 	db.execSql(L"DROP TABLE IF EXISTS strings", {});
 	db.execSql(L"CREATE TABLE strings (id INTEGER PRIMARY KEY, val STRING UNIQUE NOT NULL)", {});
 	db.execSql(L"INSERT INTO strings (id, val) VALUES (0, '')", {});
+	
+	flush_caches();
 }
 
 int64_t strings::get_id(db& db, const std::wstring& str) {

@@ -51,14 +51,20 @@ std::wstring paths::get_path(db& db, const node& cur) {
 	seen_node_ids.insert(cur.m_id);
 
 	node cur_node = cur;
-	while (cur_node.m_parent_id > 0) {
+	do
+	{
 		path_str_ids.push_back(cur_node.m_name_string_id);
-		cur_node = nodes::get_parent_node(db, cur_node.m_id);
+		
+		auto new_node_opt = nodes::get_parent_node(db, cur_node.m_id);
+		if (!new_node_opt.has_value())
+			break;
+		cur_node = new_node_opt.value();
+
 		if (seen_node_ids.find(cur_node.m_id) != seen_node_ids.end())
 			break;
 		else
 			seen_node_ids.insert(cur.m_id);
-	}
+	} while (cur_node.m_parent_id > 0);
 
 	std::reverse(path_str_ids.begin(), path_str_ids.end());
 

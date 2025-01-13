@@ -17,8 +17,7 @@ namespace nldb
 		sqlite3* m_db;
 
 	public:
-		db(const std::string& filePath)
-			: m_db(nullptr)
+		db(const std::string& filePath) : m_db(nullptr)
 		{
 			int rc = sqlite3_open(filePath.c_str(), &m_db);
 			if (rc != SQLITE_OK)

@@ -17,7 +17,10 @@ namespace nldb
 			strings::setup(db);
 			nodes::setup(db);
 
-			node null_node = nodes::get_parent_node(db, 0);
+			auto null_node_opt = nodes::get_parent_node(db, 0);
+			if (!null_node_opt.has_value())
+				Assert::Fail();
+			node null_node = null_node_opt.value();
 			Assert::AreEqual(int64_t(0), null_node.m_id);
 			Assert::AreEqual(int64_t(0), null_node.m_parent_id);
 			Assert::AreEqual(int64_t(0), null_node.m_name_string_id);
@@ -35,6 +38,17 @@ namespace nldb
 			Assert::AreEqual(int64_t(0), node2.m_parent_id);
 			Assert::AreEqual(strings::get_id(db, L"blet"), node2.m_name_string_id);
 			Assert::AreEqual(strings::get_id(db, L"monkey"), node2.m_type_string_id);
+
+			nodes::move(db, node2.m_id, node1.m_id);
+
+			auto node2_opt = nodes::get_node(db, node2.m_id);
+			if (!node2_opt.has_value())
+				Assert::Fail();
+			node node2b = node2_opt.value();
+			Assert::AreEqual(node2.m_id, node2b.m_id);
+			Assert::AreEqual(node2.m_name_string_id, node2b.m_name_string_id);
+			Assert::AreEqual(node2.m_type_string_id, node2b.m_type_string_id);
+			Assert::AreEqual(node1.m_id, node2b.m_parent_id);
 		}
 	};
 }
