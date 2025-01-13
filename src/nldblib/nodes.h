@@ -17,6 +17,20 @@ namespace nldb
 			, m_type_string_id(type_string_id)
 		{
 		}
+
+		bool operator==(const node& other) const {
+			return 
+				m_id == other.m_id 
+				&& 
+				m_parent_id == other.m_parent_id 
+				&& 
+				m_name_string_id == other.m_name_string_id 
+				&& 
+				m_type_string_id == other.m_type_string_id;
+		}
+		bool operator!=(const node& other) const {
+			return !operator==(other);
+		}
 	};
 
 	class nodes {
@@ -29,5 +43,8 @@ namespace nldb
 		static std::optional<node> get_node(db& db, int64_t nodeId);
 		static std::optional<node> get_node_in_parent(db& db, int64_t parentNodeId, int64_t nameStringId);
 		static std::optional<node> get_parent_node(db& db, int64_t nodeId);
+
+		static std::vector<node> get_path_nodes(db& db, const std::wstring& path);
+		static std::wstring get_path_str(db& db, const node& cur);
 	};
 }

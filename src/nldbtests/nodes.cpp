@@ -49,6 +49,30 @@ namespace nldb
 			Assert::AreEqual(node2.m_name_string_id, node2b.m_name_string_id);
 			Assert::AreEqual(node2.m_type_string_id, node2b.m_type_string_id);
 			Assert::AreEqual(node1.m_id, node2b.m_parent_id);
+
+			std::wstring null_node_path = nodes::get_path_str(db, node());
+			Assert::AreEqual(std::wstring(L"/"), null_node_path);
+
+			std::wstring node1_path = nodes::get_path_str(db, node1);
+			Assert::AreEqual(std::wstring(L"/foo"), node1_path);
+
+			std::wstring node2_path = nodes::get_path_str(db, node2b);
+			Assert::AreEqual(std::wstring(L"/foo/blet"), node2_path);
+
+			auto null_node_path_nodes = nodes::get_path_nodes(db, L"");
+			Assert::AreEqual(size_t(1), null_node_path_nodes.size());
+			Assert::IsTrue(null_node == null_node_path_nodes[0]);
+
+			auto node1_path_nodes = nodes::get_path_nodes(db, node1_path);
+			Assert::AreEqual(size_t(2), node1_path_nodes.size());
+			Assert::IsTrue(null_node == node1_path_nodes[0]);
+			Assert::IsTrue(node1 == node1_path_nodes[1]);
+
+			auto node2_path_nodes = nodes::get_path_nodes(db, node2_path);
+			Assert::AreEqual(size_t(3), node2_path_nodes.size());
+			Assert::IsTrue(null_node == node2_path_nodes[0]);
+			Assert::IsTrue(node1 == node2_path_nodes[1]);
+			Assert::IsTrue(node2b == node2_path_nodes[2]);
 		}
 	};
 }

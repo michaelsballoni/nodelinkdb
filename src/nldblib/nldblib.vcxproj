@@ -153,7 +153,6 @@
     <ClInclude Include="dbreader.h" />
     <ClInclude Include="includes.h" />
     <ClInclude Include="nodes.h" />
-    <ClInclude Include="paths.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="strings.h" />
     <ClInclude Include="strnum.h" />
@@ -169,7 +168,6 @@
     <ClCompile Include="core.cpp" />
     <ClCompile Include="dbreader.cpp" />
     <ClCompile Include="nodes.cpp" />
-    <ClCompile Include="paths.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
