@@ -5,6 +5,7 @@
 
 #include <assert.h>
 
+#include <chrono>
 #include <codecvt>
 #include <filesystem>
 #include <functional>

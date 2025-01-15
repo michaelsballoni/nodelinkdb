@@ -152,11 +152,13 @@
     <ClInclude Include="db.h" />
     <ClInclude Include="dbreader.h" />
     <ClInclude Include="includes.h" />
+    <ClInclude Include="loader.h" />
     <ClInclude Include="node.h" />
     <ClInclude Include="nodes.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="strings.h" />
     <ClInclude Include="strnum.h" />
+    <ClInclude Include="stopwatch.h" />
     <ClInclude Include="vectormap.h" />
   </ItemGroup>
   <ItemGroup>
@@ -168,6 +170,7 @@
     </ClCompile>
     <ClCompile Include="core.cpp" />
     <ClCompile Include="dbreader.cpp" />
+    <ClCompile Include="loader.cpp" />
     <ClCompile Include="nodes.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
