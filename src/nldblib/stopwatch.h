@@ -16,17 +16,20 @@ namespace nldb
 			start();
 		}
 
-		void start() {
+		void start() 
+		{
 			m_point = m_clock.now();
 		}
 
-		void record() {
+		void record() 
+		{
 			++m_hits;
 			auto elapsed_ms_count = std::chrono::duration_cast<std::chrono::milliseconds>(m_clock.now() - m_point);
 			m_total_elapsed_ms += (int)elapsed_ms_count.count();
 		}
 
-		void print() {
+		void print() 
+		{
 			printf("%s: %d hits - %d ms total\n", 
 				   m_section.c_str(), m_hits, m_total_elapsed_ms);
 		}

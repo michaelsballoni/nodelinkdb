@@ -7,7 +7,8 @@ using namespace nldb;
 std::shared_mutex g_toIdCacheLock;
 std::unordered_map<std::wstring, int64_t> g_toIdCache;
 
-void strings::setup(db& db) {
+void strings::setup(db& db) 
+{
 	flush_caches();
 
 	db.execSql(L"DROP TABLE IF EXISTS strings", {});
@@ -15,7 +16,8 @@ void strings::setup(db& db) {
 	db.execSql(L"INSERT INTO strings (id, val) VALUES (0, '')", {});
 }
 
-int64_t strings::get_id(db& db, const std::wstring& str) {
+int64_t strings::get_id(db& db, const std::wstring& str) 
+{
 	if (str.empty())
 		return 0;
 
@@ -27,14 +29,17 @@ int64_t strings::get_id(db& db, const std::wstring& str) {
 	}
 
 	auto opt = db.execScalarInt64(L"SELECT id FROM strings WHERE val = @val", { { L"@val", str } });
-	if (opt.has_value()) {
+	if (opt.has_value()) 
+	{
 		int64_t id = opt.value();
 		std::unique_lock<std::shared_mutex> write_lock(g_toIdCacheLock);
 		g_toIdCache.insert({ str, id });
 		return id;
 	}
-	else {
-		try {
+	else 
+	{
+		try 
+		{
 			int64_t id = db.execInsert(L"INSERT INTO strings (val) VALUES (@val)", { { L"@val", str } });;
 			std::unique_lock<std::shared_mutex> write_lock(g_toIdCacheLock);
 			g_toIdCache.insert({ str, id });
@@ -49,7 +54,8 @@ int64_t strings::get_id(db& db, const std::wstring& str) {
 std::shared_mutex g_toValCacheLock;
 std::unordered_map<int64_t, std::wstring> g_toValCache;
 
-std::wstring strings::get_val(db& db, int64_t id) {
+std::wstring strings::get_val(db& db, int64_t id) 
+{
 	if (id == 0)
 		return std::wstring();
 
@@ -72,7 +78,8 @@ std::wstring strings::get_val(db& db, int64_t id) {
 	return val;
 }
 
-std::unordered_map<int64_t, std::wstring> strings::get_vals(db& db, const std::vector<int64_t>& ids) {
+std::unordered_map<int64_t, std::wstring> strings::get_vals(db& db, const std::vector<int64_t>& ids) 
+{
 	std::unordered_map<int64_t, std::wstring> ret_val;
 	if (ids.empty())
 		return ret_val;
@@ -82,12 +89,15 @@ std::unordered_map<int64_t, std::wstring> strings::get_vals(db& db, const std::v
 	std::wstring ids_str;
 	{
 		std::shared_lock<std::shared_mutex> read_lock(g_toValCacheLock);
-		for (int64_t id : ids) {
+		for (int64_t id : ids) 
+		{
 			auto it = g_toValCache.find(id);
-			if (it != g_toValCache.end()) {
+			if (it != g_toValCache.end()) 
+			{
 				ret_val[id] = it->second;
 			}
-			else {
+			else 
+			{
 				if (!ids_str.empty())
 					ids_str += ',';
 				ids_str += std::to_wstring(id);
@@ -95,11 +105,13 @@ std::unordered_map<int64_t, std::wstring> strings::get_vals(db& db, const std::v
 		}
 	}
 
-	if (!ids_str.empty()) {
+	if (!ids_str.empty()) 
+	{
 		auto reader = db.execReader(std::wstring(L"SELECT id, val FROM strings WHERE id IN (") + ids_str + L")", {});
 		{
 			std::unique_lock<std::shared_mutex> write_lock(g_toValCacheLock);
-			while (reader->read()) {
+			while (reader->read()) 
+			{
 				int64_t id = reader->getInt64(0);
 				std::wstring val = reader->getString(1);
 				ret_val[id] = val;

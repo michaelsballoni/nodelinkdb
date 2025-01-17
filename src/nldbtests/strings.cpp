@@ -15,7 +15,8 @@ namespace nldb
 			db db("tests.strings.db");
 			strings::setup(db);
 
-			try {
+			try 
+			{
 				strings::get_val(db, -1200);
 				Assert::Fail();
 			}
@@ -61,11 +62,13 @@ namespace nldb
 			Assert::IsTrue(strs3[id1] == str1);
 			Assert::IsTrue(strs3[id2] == str2);
 
-			try {
+			try 
+			{
 				strings::get_vals(db, { id1, id2, -782 });
 				Assert::Fail();
 			}
-			catch (const nldberr& exp) {
+			catch (const nldberr& exp) 
+			{
 				Assert::IsTrue(std::string(exp.what()).find("not found") != std::string::npos);
 			}
 		}

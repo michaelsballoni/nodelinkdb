@@ -1,0 +1,46 @@
+props
+=====
+setup()
+	nodeid
+	namestrid
+	valstrid
+	idx: nodeid, namestr (uniq)
+	idx: valstrid, namestrid, nodeid (uniq)
+api
+	set(db, nodeid, namestrid, valuestrid)
+cmd
+	setprop name value
+	delprop name
+	getprops 
+
+search
+======
+SQL generation
+parent
+name
+prop
+
+links
+=====
+setup()
+	fromnodeid
+	tonodeid
+	typestrid
+	idx: fromnodeid, tonodeid, typestrid (uniq)
+	idx: tonodeid, fromnodeid, typestrid (uniq)
+api
+	link(db, fromnodeid, tonodeid, linktypestringid)
+	unlink(db, fromnodeid, tonodeid, linktypestringid)
+cmd
+	link fromnodepath tonodepath linktype
+	unlink fromnodepath tonodepath linktype
+
+cmd
+===
+cd: change absolute if starts with /, otherwise relative to current
+dir: list sub-dirs and files of the given node
+tell: dump everything about the given node
+move: given dest
+copy: given dest
+del: given
+ren: given newname

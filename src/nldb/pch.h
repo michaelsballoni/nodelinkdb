@@ -6,6 +6,7 @@
 #include "db.h"
 #include "loader.h"
 #include "nodes.h"
+#include "props.h"
 #include "stopwatch.h"
 #include "strings.h"
 

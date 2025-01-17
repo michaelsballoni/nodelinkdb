@@ -5,7 +5,8 @@
 
 using namespace nldb;
 
-void nodes::setup(db& db) {
+void nodes::setup(db& db) 
+{
 	db.execSql(L"DROP TABLE IF EXISTS nodes", {});
 	db.execSql
 	(
@@ -26,7 +27,8 @@ void nodes::setup(db& db) {
 	db.execSql(L"INSERT INTO nodes (id, created, last_modified) VALUES (0, 0, 0)", {});
 }
 
-node nodes::create(db& db, int64_t parentNodeId, int64_t nameStringId, int64_t typeStringId) {
+node nodes::create(db& db, int64_t parentNodeId, int64_t nameStringId, int64_t typeStringId) 
+{
 	int64_t new_id =
 		db.execInsert
 		(
@@ -36,11 +38,12 @@ node nodes::create(db& db, int64_t parentNodeId, int64_t nameStringId, int64_t t
 				{ L"@name_string_id", (double)nameStringId },
 				{ L"@type_string_id", (double)typeStringId },
 			}
-			);
+		);
 	return node(new_id, parentNodeId, nameStringId, typeStringId);
 }
 
-void nodes::move(db& db, int64_t nodeId, int64_t newParentNodeId) {
+void nodes::move(db& db, int64_t nodeId, int64_t newParentNodeId) 
+{
 	int rows_affected =
 		db.execSql
 		(
@@ -54,7 +57,8 @@ void nodes::move(db& db, int64_t nodeId, int64_t newParentNodeId) {
 		throw nldberr("Node not moved");
 }
 
-std::optional<node> nodes::get_node(db& db, int64_t nodeId) {
+std::optional<node> nodes::get_node(db& db, int64_t nodeId) 
+{
 	auto reader =
 		db.execReader
 		(
@@ -71,7 +75,8 @@ std::optional<node> nodes::get_node(db& db, int64_t nodeId) {
 	return node(nodeId, parent_id, name_string_id, type_string_id);
 }
 
-std::optional<node> nodes::get_node_in_parent(db& db, int64_t parentNodeId, int64_t nameStringId) {
+std::optional<node> nodes::get_node_in_parent(db& db, int64_t parentNodeId, int64_t nameStringId) 
+{
 	auto reader =
 		db.execReader
 		(
@@ -93,7 +98,8 @@ std::optional<node> nodes::get_node_in_parent(db& db, int64_t parentNodeId, int6
 	return node(id, parentNodeId, nameStringId, type_string_id);
 }
 
-std::optional<node> nodes::get_parent_node(db& db, int64_t nodeId) {
+std::optional<node> nodes::get_parent_node(db& db, int64_t nodeId) 
+{
 	auto reader =
 		db.execReader
 		(
@@ -111,13 +117,16 @@ std::optional<node> nodes::get_parent_node(db& db, int64_t nodeId) {
 	return node(id, parent_id, name_string_id, type_string_id);
 }
 
-std::vector<node> nodes::get_path_nodes(db& db, const std::wstring& path) {
+std::vector<node> nodes::get_path_nodes(db& db, const std::wstring& path) 
+{
 	std::vector<node> output;
 
 	std::vector<std::wstring> splits;
 	std::wstring builder;
-	for (wchar_t c : path) {
-		if (c == '/') {
+	for (wchar_t c : path) 
+	{
+		if (c == '/') 
+		{
 			splits.push_back(builder);
 			builder.clear();
 		}
@@ -150,7 +159,8 @@ std::vector<node> nodes::get_path_nodes(db& db, const std::wstring& path) {
 	return output;
 }
 
-std::wstring nodes::get_path_str(db& db, const node& cur) {
+std::wstring nodes::get_path_str(db& db, const node& cur) 
+{
 	std::vector<int64_t> path_str_ids;
 
 	std::unordered_set<int64_t> seen_node_ids;

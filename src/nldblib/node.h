@@ -16,7 +16,8 @@ namespace nldb
 		{
 		}
 
-		bool operator==(const node& other) const {
+		bool operator==(const node& other) const 
+		{
 			return
 				m_id == other.m_id
 				&&

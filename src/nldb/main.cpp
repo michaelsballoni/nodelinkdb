@@ -3,8 +3,10 @@
 namespace fs = std::filesystem;
 using namespace nldb;
 
-int wmain(int argc, wchar_t* argv[]) {
-	try {
+int wmain(int argc, wchar_t* argv[]) 
+{
+	try 
+	{
 		if (argc < 2) {
 			printf("Usage: db-path command arguments\n");
 			printf("\n");
@@ -26,7 +28,8 @@ int wmain(int argc, wchar_t* argv[]) {
 		for (int a = 3; a < argc; ++a)
 			args.push_back(argv[a]);
 
-		if (cmd == L"init") {
+		if (cmd == L"init") 
+		{
 			printf("Setting up...");
 
 			printf("strings...");
@@ -35,11 +38,15 @@ int wmain(int argc, wchar_t* argv[]) {
 			printf("nodes...");
 			nodes::setup(db);
 
+			printf("props...");
+			props::setup(db);
+
 			printf("\nAll done.\n");
 			return 0;
 		}
 
-		if (cmd == L"string-id") {
+		if (cmd == L"string-id") 
+		{
 			if (args.size() != 1)
 				throw nldberr("string-id: Specify one string value to get the ID of");
 			int64_t id = strings::get_id(db, args[0]);
@@ -47,7 +54,8 @@ int wmain(int argc, wchar_t* argv[]) {
 			return 0;
 		}
 
-		if (cmd == L"string-val") {
+		if (cmd == L"string-val") 
+		{
 			if (args.size() != 1)
 				throw nldberr("string-val: Specify one string IDs to get the value of");
 			int64_t id = _wtoi64(args[0].c_str());
@@ -56,7 +64,8 @@ int wmain(int argc, wchar_t* argv[]) {
 			return 0;
 		}
 
-		if (cmd == L"string-vals") {
+		if (cmd == L"string-vals") 
+		{
 			if (args.empty())
 				throw nldberr("string-vals: Specify one or more string IDs to get the value of");
 
@@ -65,38 +74,26 @@ int wmain(int argc, wchar_t* argv[]) {
 				ids.push_back(_wtoi64(id_str.c_str()));
 
 			auto id_vals = strings::get_vals(db, ids);
-			for (int64_t id : ids) {
+			for (int64_t id : ids) 
+			{
 				std::wstring val = id_vals[id];
 				printf("ID: %I64d - Val: %S\n", id, val.c_str());
 			}
 			return 0;
 		}
 
-		if (cmd == L"load") {
+		if (cmd == L"load") 
+		{
 			if (args.size() != 1)
 				throw nldberr("load: Specify one path to a directory to load into the DB");
 			std::wstring dir_path = args[0];
 			printf("Directory: %S\n", dir_path.c_str());
 
-			printf("Setting up...");
-			strings::setup(db);
-			nodes::setup(db);
-			printf("done!\n");
-
 			loader loader(db);
-			stopwatch sw1("one");
-			stopwatch sw2("two");
-			for (int run = 1; run <= 3; ++run) {
-				sw1.start();
-				loader.load_directory(dir_path);
-				sw1.record();
-
-				sw2.start();
-				loader.load_directory2(dir_path);
-				sw2.record();
-			}
-			sw1.print();
-			sw2.print();
+			stopwatch sw("load");
+			loader.load_directory(dir_path);
+			sw.record();
+			sw.print();
 
 			return 0;
 		}
@@ -104,7 +101,8 @@ int wmain(int argc, wchar_t* argv[]) {
 		printf("ERROR: Unknown command: %S\n", cmd.c_str());
 		return 1;
 	}
-	catch (const std::exception& exp) {
+	catch (const std::exception& exp) 
+	{
 		printf("EXCEPTION: %s\n", exp.what());
 		return 1;
 	}

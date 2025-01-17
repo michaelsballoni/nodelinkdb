@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <functional>
 #include <locale> 
+#include <map>
 #include <memory>
 #include <mutex>
 #include <optional>
