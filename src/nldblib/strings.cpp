@@ -45,7 +45,8 @@ int64_t strings::get_id(db& db, const std::wstring& str)
 			g_toIdCache.insert({ str, id });
 			return id;
 		}
-		catch (const nldberr&) {
+		catch (const nldberr&) 
+		{
 			return get_id(db, str); // loop around and try again
 		}
 	}

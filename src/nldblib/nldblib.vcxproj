@@ -159,6 +159,7 @@
     <ClInclude Include="nodes.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="props.h" />
+    <ClInclude Include="search.h" />
     <ClInclude Include="strings.h" />
     <ClInclude Include="strnum.h" />
     <ClInclude Include="stopwatch.h" />
@@ -183,6 +184,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="props.cpp" />
+    <ClCompile Include="search.cpp" />
     <ClCompile Include="strings.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

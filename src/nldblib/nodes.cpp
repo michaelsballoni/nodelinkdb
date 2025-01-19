@@ -15,9 +15,7 @@ void nodes::setup(db& db)
 		L"id INTEGER PRIMARY KEY, "
 		L"parent_id INTEGER NOT NULL, " 
 		L"type_string_id INTEGER NOT NULL, " 
-		L"name_string_id INTEGER NOT NULL, "
-		L"created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " 
-		L"last_modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP" 
+		L"name_string_id INTEGER NOT NULL"
 		L")", 
 	{});
 	
