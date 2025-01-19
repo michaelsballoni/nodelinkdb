@@ -152,6 +152,8 @@
     <ClInclude Include="db.h" />
     <ClInclude Include="dbreader.h" />
     <ClInclude Include="includes.h" />
+    <ClInclude Include="link.h" />
+    <ClInclude Include="links.h" />
     <ClInclude Include="loader.h" />
     <ClInclude Include="node.h" />
     <ClInclude Include="nodes.h" />
@@ -171,6 +173,7 @@
     </ClCompile>
     <ClCompile Include="core.cpp" />
     <ClCompile Include="dbreader.cpp" />
+    <ClCompile Include="links.cpp" />
     <ClCompile Include="loader.cpp" />
     <ClCompile Include="nodes.cpp" />
     <ClCompile Include="pch.cpp">

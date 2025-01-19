@@ -2,17 +2,18 @@
 
 namespace nldb
 {
-	struct node {
+	struct node 
+	{
 		int64_t m_id;
-		int64_t m_parent_id;
-		int64_t m_name_string_id;
-		int64_t m_type_string_id;
+		int64_t m_parentId;
+		int64_t m_nameStringId;
+		int64_t m_typeStringId;
 
-		node(int64_t id = 0, int64_t parent_id = 0, int64_t name_string_id = 0, int64_t type_string_id = 0)
+		node(int64_t id = 0, int64_t parentId = 0, int64_t nameStringId = 0, int64_t typeStringId = 0)
 			: m_id(id)
-			, m_parent_id(parent_id)
-			, m_name_string_id(name_string_id)
-			, m_type_string_id(type_string_id)
+			, m_parentId(parentId)
+			, m_nameStringId(nameStringId)
+			, m_typeStringId(typeStringId)
 		{
 		}
 
@@ -21,11 +22,11 @@ namespace nldb
 			return
 				m_id == other.m_id
 				&&
-				m_parent_id == other.m_parent_id
+				m_parentId == other.m_parentId
 				&&
-				m_name_string_id == other.m_name_string_id
+				m_nameStringId == other.m_nameStringId
 				&&
-				m_type_string_id == other.m_type_string_id;
+				m_typeStringId == other.m_typeStringId;
 		}
 		bool operator!=(const node& other) const {
 			return !operator==(other);

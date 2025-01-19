@@ -1,44 +1,23 @@
-props
-=====
-setup()
-	itemid
-	itemtypestrid // "node" or "link"
-	namestrid
-	valstrid
-	idx: itemid, itemtypestrid, namestrid (uniq)
-	idx: valstrid, namestrid, itemtypestrid, itemid (uniq)
-api
-	set(db, itemtypestrid, itemid, namestrid, valuestrid)
-	get(db, itemtypestrid, itemid)
-
-links
-=====
-setup()
-	linkid: primary key integer
-	fromnodeid
-	tonodeid
-	typestrid
-	idx: fromnodeid, tonodeid, typestrid (uniq)
-	idx: tonodeid, fromnodeid, typestrid (uniq)
-api
-	link(db, fromnodeid, tonodeid, linktypestringid)
-	unlink(db, fromnodeid, tonodeid, linktypestringid)
-cmd
-	link fromnodepath tonodepath linktype
-	unlink fromnodepath tonodepath linktype
 
 search
 ======
 SQL generation
-getnodes([<name1, value1>, ...])
-getlinks([<name1, value1>, ...])
+get_nodes([<name1, value1>, ...])
+get_links([<name1, value1 >, ...])
 
 cmd
 ===
+load
 cd: change absolute if starts with /, otherwise relative to current
 dir: list sub-dirs and files of the given node
-tell: dump everything about the given node
-move: given dest
-copy: given dest
-del: given
-ren: given newname
+
+setprop path name value
+delprop path name
+
+link fromnodepath tonodepath linktype
+unlink fromnodepath tonodepath linktype
+
+setlinkprop path name value
+dellinkprop path name
+
+tell: dump everything about the given node: path, props, in-links, out-links

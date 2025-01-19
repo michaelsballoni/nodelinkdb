@@ -164,6 +164,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="links.cpp" />
     <ClCompile Include="nodes.cpp" />
     <ClCompile Include="props.cpp" />
     <ClCompile Include="strings.cpp" />

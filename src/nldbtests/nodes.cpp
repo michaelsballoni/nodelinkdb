@@ -8,7 +8,7 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace nldb
 {
-	TEST_CLASS(nodestests)
+	TEST_CLASS(nodetests)
 	{
 	public:
 		TEST_METHOD(TestNodes)
@@ -22,22 +22,22 @@ namespace nldb
 				Assert::Fail();
 			node null_node = null_node_opt.value();
 			Assert::AreEqual(int64_t(0), null_node.m_id);
-			Assert::AreEqual(int64_t(0), null_node.m_parent_id);
-			Assert::AreEqual(int64_t(0), null_node.m_name_string_id);
-			Assert::AreEqual(int64_t(0), null_node.m_type_string_id);
+			Assert::AreEqual(int64_t(0), null_node.m_parentId);
+			Assert::AreEqual(int64_t(0), null_node.m_nameStringId);
+			Assert::AreEqual(int64_t(0), null_node.m_typeStringId);
 
 			node node1 = nodes::create(db, 0, strings::get_id(db, L"foo"), strings::get_id(db, L"bar"));
 			Assert::AreNotEqual(int64_t(0), node1.m_id);
-			Assert::AreEqual(int64_t(0), node1.m_parent_id);
-			Assert::AreEqual(strings::get_id(db, L"foo"), node1.m_name_string_id);
-			Assert::AreEqual(strings::get_id(db, L"bar"), node1.m_type_string_id);
+			Assert::AreEqual(int64_t(0), node1.m_parentId);
+			Assert::AreEqual(strings::get_id(db, L"foo"), node1.m_nameStringId);
+			Assert::AreEqual(strings::get_id(db, L"bar"), node1.m_typeStringId);
 
 			node node2 = nodes::create(db, 0, strings::get_id(db, L"blet"), strings::get_id(db, L"monkey"));
 			Assert::AreNotEqual(int64_t(0), node2.m_id);
 			Assert::AreNotEqual(node1.m_id, node2.m_id);
-			Assert::AreEqual(int64_t(0), node2.m_parent_id);
-			Assert::AreEqual(strings::get_id(db, L"blet"), node2.m_name_string_id);
-			Assert::AreEqual(strings::get_id(db, L"monkey"), node2.m_type_string_id);
+			Assert::AreEqual(int64_t(0), node2.m_parentId);
+			Assert::AreEqual(strings::get_id(db, L"blet"), node2.m_nameStringId);
+			Assert::AreEqual(strings::get_id(db, L"monkey"), node2.m_typeStringId);
 
 			nodes::move(db, node2.m_id, node1.m_id);
 
@@ -46,9 +46,9 @@ namespace nldb
 				Assert::Fail();
 			node node2b = node2_opt.value();
 			Assert::AreEqual(node2.m_id, node2b.m_id);
-			Assert::AreEqual(node2.m_name_string_id, node2b.m_name_string_id);
-			Assert::AreEqual(node2.m_type_string_id, node2b.m_type_string_id);
-			Assert::AreEqual(node1.m_id, node2b.m_parent_id);
+			Assert::AreEqual(node2.m_nameStringId, node2b.m_nameStringId);
+			Assert::AreEqual(node2.m_typeStringId, node2b.m_typeStringId);
+			Assert::AreEqual(node1.m_id, node2b.m_parentId);
 
 			std::wstring null_node_path = nodes::get_path_str(db, node());
 			Assert::AreEqual(std::wstring(L"/"), null_node_path);

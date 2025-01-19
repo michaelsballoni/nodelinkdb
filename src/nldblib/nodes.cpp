@@ -13,9 +13,9 @@ void nodes::setup(db& db)
 		L"CREATE TABLE nodes "
 		L"(" 
 		L"id INTEGER PRIMARY KEY, "
-		L"parent_id INTEGER NOT NULL DEFAULT 0, " 
-		L"type_string_id INTEGER NOT NULL DEFAULT 0, " 
-		L"name_string_id INTEGER NOT NULL DEFAULT 0, "
+		L"parent_id INTEGER NOT NULL, " 
+		L"type_string_id INTEGER NOT NULL, " 
+		L"name_string_id INTEGER NOT NULL, "
 		L"created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " 
 		L"last_modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP" 
 		L")", 
@@ -24,7 +24,7 @@ void nodes::setup(db& db)
 	db.execSql(L"CREATE UNIQUE INDEX node_parents ON nodes (parent_id, id)", {});
 	db.execSql(L"CREATE UNIQUE INDEX node_names ON nodes (parent_id, name_string_id)", {});
 
-	db.execSql(L"INSERT INTO nodes (id, created, last_modified) VALUES (0, 0, 0)", {});
+	db.execSql(L"INSERT INTO nodes (id, parent_id, type_string_id, name_string_id) VALUES (0, 0, 0, 0)", {});
 }
 
 node nodes::create(db& db, int64_t parentNodeId, int64_t nameStringId, int64_t typeStringId) 
@@ -32,11 +32,11 @@ node nodes::create(db& db, int64_t parentNodeId, int64_t nameStringId, int64_t t
 	int64_t new_id =
 		db.execInsert
 		(
-			L"INSERT INTO nodes (parent_id, name_string_id, type_string_id) VALUES (@parent_id, @name_string_id, @type_string_id)",
+			L"INSERT INTO nodes (parent_id, name_string_id, type_string_id) VALUES (@parentNodeId, @nameStringId, @typeStringId)",
 			{
-				{ L"@parent_id", (double)parentNodeId },
-				{ L"@name_string_id", (double)nameStringId },
-				{ L"@type_string_id", (double)typeStringId },
+				{ L"@parentNodeId", (double)parentNodeId },
+				{ L"@nameStringId", (double)nameStringId },
+				{ L"@typeStringId", (double)typeStringId },
 			}
 		);
 	return node(new_id, parentNodeId, nameStringId, typeStringId);
@@ -67,12 +67,8 @@ std::optional<node> nodes::get_node(db& db, int64_t nodeId)
 		);
 	if (!reader->read())
 		return std::nullopt;
-
-	int64_t parent_id = reader->getInt64(0);
-	int64_t name_string_id = reader->getInt64(1);
-	int64_t type_string_id = reader->getInt64(2);
-
-	return node(nodeId, parent_id, name_string_id, type_string_id);
+	else
+		return node(nodeId, reader->getInt64(0), reader->getInt64(1), reader->getInt64(2));
 }
 
 std::optional<node> nodes::get_node_in_parent(db& db, int64_t parentNodeId, int64_t nameStringId) 
@@ -82,11 +78,11 @@ std::optional<node> nodes::get_node_in_parent(db& db, int64_t parentNodeId, int6
 		(
 			L"SELECT id, type_string_id " 
 			L"FROM nodes " 
-			L"WHERE parent_id = @parent_id " 
-			L"AND name_string_id = @name_string_id", 
+			L"WHERE parent_id = @parentNodeId " 
+			L"AND name_string_id = @nameStringId", 
 			{
-				{ L"@parent_id", (double)parentNodeId, },
-				{ L"@name_string_id", (double)nameStringId }
+				{ L"@parentNodeId", (double)parentNodeId, },
+				{ L"@nameStringId", (double)nameStringId }
 			}
 		);
 	if (!reader->read())
@@ -108,13 +104,8 @@ std::optional<node> nodes::get_parent_node(db& db, int64_t nodeId)
 		);
 	if (!reader->read())
 		return std::nullopt;
-
-	int64_t id = reader->getInt64(0);
-	int64_t parent_id = reader->getInt64(1);
-	int64_t name_string_id = reader->getInt64(2);
-	int64_t type_string_id = reader->getInt64(3);
-
-	return node(id, parent_id, name_string_id, type_string_id);
+	else
+		return node(reader->getInt64(0), reader->getInt64(1), reader->getInt64(2), reader->getInt64(3));
 }
 
 std::vector<node> nodes::get_path_nodes(db& db, const std::wstring& path) 
@@ -169,7 +160,7 @@ std::wstring nodes::get_path_str(db& db, const node& cur)
 	node cur_node = cur;
 	do
 	{
-		path_str_ids.push_back(cur_node.m_name_string_id);
+		path_str_ids.push_back(cur_node.m_nameStringId);
 
 		auto new_node_opt = nodes::get_parent_node(db, cur_node.m_id);
 		if (!new_node_opt.has_value())
