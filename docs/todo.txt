@@ -1,28 +1,20 @@
 props
 =====
 setup()
-	nodeid
+	itemid
+	itemtypestrid // "node" or "link"
 	namestrid
 	valstrid
-	idx: nodeid, namestr (uniq)
-	idx: valstrid, namestrid, nodeid (uniq)
+	idx: itemid, itemtypestrid, namestrid (uniq)
+	idx: valstrid, namestrid, itemtypestrid, itemid (uniq)
 api
-	set(db, nodeid, namestrid, valuestrid)
-cmd
-	setprop name value
-	delprop name
-	getprops 
-
-search
-======
-SQL generation
-parent
-name
-prop
+	set(db, itemtypestrid, itemid, namestrid, valuestrid)
+	get(db, itemtypestrid, itemid)
 
 links
 =====
 setup()
+	linkid: primary key integer
 	fromnodeid
 	tonodeid
 	typestrid
@@ -34,6 +26,12 @@ api
 cmd
 	link fromnodepath tonodepath linktype
 	unlink fromnodepath tonodepath linktype
+
+search
+======
+SQL generation
+getnodes([<name1, value1>, ...])
+getlinks([<name1, value1>, ...])
 
 cmd
 ===
