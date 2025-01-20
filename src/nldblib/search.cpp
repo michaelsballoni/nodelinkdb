@@ -18,9 +18,9 @@ std::wstring get_find_sql(db& db, const find_params& findParams, paramap& sqlPar
 	sqlParams[L"@node_item_type_id"] = strings::get_id(db, findParams.m_itemType);
 	sqlParams[L"@order_by_string_id"] = strings::get_id(db, findParams.m_pQuery->m_orderBy);
 
-	std::wstring sql = L"SELECT " + findParams.m_columns + L" FROM " + findParams.m_itemTable + L" Items ";
+	std::wstring sql = L"SELECT " + findParams.m_columns + L" FROM " + findParams.m_itemTable + L" AS Items ";
 	if (!findParams.m_pQuery->m_orderBy.empty())
-		sql += L"JOIN props ItemProps ON ItemProps.itemid = Items.id JOIN strings ItemStrings ON ItemString.id = ItemProps.valstrid ";
+		sql += L"JOIN props AS ItemProps ON ItemProps.itemid = Items.id JOIN strings AS ItemStrings ON ItemStrings.id = ItemProps.valstrid ";
 
 	sql += L"WHERE ";
 	int param_num = 1;
@@ -34,7 +34,7 @@ std::wstring get_find_sql(db& db, const find_params& findParams, paramap& sqlPar
 
 		sqlParams[L"@namestrid" + param_num_str] = crit.m_nameStringId;
 
-		std::wstring new_sql = L"id IN (SELECT itemid FROM props WHERE itemtypstrid = @node_item_type_id AND namestrid = @namestrid" + param_num_str;
+		std::wstring new_sql = L"Items.id IN (SELECT itemid FROM props WHERE itemtypstrid = @node_item_type_id AND namestrid = @namestrid" + param_num_str;
 		if (crit.m_useLike)
 		{
 			sqlParams[L"@valstr" + param_num_str] = crit.m_valueString;
@@ -52,7 +52,7 @@ std::wstring get_find_sql(db& db, const find_params& findParams, paramap& sqlPar
 
 	if (!findParams.m_pQuery->m_orderBy.empty())
 	{
-		sql += L"\nAND ItemProps.namestrid = @order_by_string_id AND ItemProps.itemtypstrid = @node_item_type_id";
+		sql += L"\nAND ItemProps.itemtypstrid = @node_item_type_id AND ItemProps.namestrid = @order_by_string_id";
 		sql += L"\nORDER BY ItemStrings.val " + std::wstring(findParams.m_pQuery->m_orderAscending ? L"ASC" : L"DESC");
 	}
 
@@ -71,7 +71,7 @@ std::vector<node> search::find_nodes(db& db, const search_query& query)
 	find_params find_params;
 	find_params.m_itemType = L"node";
 	find_params.m_itemTable = L"nodes";
-	find_params.m_columns = L"id, parent_id, name_string_id, type_string_id";
+	find_params.m_columns = L"Items.id, parent_id, name_string_id, type_string_id";
 	find_params.m_pQuery = &query;
 
 	paramap sql_params;
@@ -91,7 +91,7 @@ std::vector<link> search::find_links(db& db, const search_query& query)
 	find_params find_params;
 	find_params.m_itemType = L"link";
 	find_params.m_itemTable = L"links";
-	find_params.m_columns = L"id, from_node_id, to_node_id, type_string_id";
+	find_params.m_columns = L"Items.id, from_node_id, to_node_id, type_string_id";
 	find_params.m_pQuery = &query;
 
 	paramap sql_params;
@@ -101,3 +101,4 @@ std::vector<link> search::find_links(db& db, const search_query& query)
 		output.emplace_back(reader->getInt64(0), reader->getInt64(1), reader->getInt64(2), reader->getInt64(3));
 	return output;
 }
+ 

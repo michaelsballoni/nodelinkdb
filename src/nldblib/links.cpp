@@ -9,7 +9,7 @@ link links::create(db& db, int64_t fromNodeId, int64_t toNodeId, int64_t typeStr
 	int64_t new_id =
 		db.execInsert
 		(
-			L"INSERT INTO links (fromnodeid, tonodeid, typestrid) VALUES (@fromNodeId, @toNodeId, @typeStringId)",
+			L"INSERT INTO links (from_node_id, to_node_id, type_string_id) VALUES (@fromNodeId, @toNodeId, @typeStringId)",
 			{
 				{ L"@fromNodeId", fromNodeId },
 				{ L"@toNodeId", toNodeId },
@@ -24,7 +24,7 @@ std::optional<link> links::get_link(db& db, int64_t linkId)
 	auto reader =
 		db.execReader
 		(
-			L"SELECT id, fromnodeid, tonodeid, typestrid FROM links WHERE id = @linkId",
+			L"SELECT id, from_node_id, to_node_id, type_string_id FROM links WHERE id = @linkId",
 			{ { L"@linkId", linkId } }
 		);
 	if (!reader->read())
@@ -39,7 +39,7 @@ std::vector<link> links::get_out_links(db& db, int64_t fromNodeId)
 	auto reader = 
 		db.execReader
 		(
-			L"SELECT id, fromnodeid, tonodeid, typestrid FROM links WHERE fromnodeid = @fromNodeId",
+			L"SELECT id, from_node_id, to_node_id, type_string_id FROM links WHERE from_node_id = @fromNodeId",
 			{ { L"@fromNodeId", fromNodeId } }
 		);
 	while (reader->read())
@@ -53,7 +53,7 @@ std::vector<link> links::get_in_links(db& db, int64_t toNodeId)
 	auto reader =
 		db.execReader
 		(
-			L"SELECT id, fromnodeid, tonodeid, typestrid FROM links WHERE tonodeid = @toNodeId",
+			L"SELECT id, from_node_id, to_node_id, type_string_id FROM links WHERE to_node_id = @toNodeId",
 			{ { L"@toNodeId", toNodeId } }
 		);
 	while (reader->read())

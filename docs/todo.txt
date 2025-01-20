@@ -1,18 +1,11 @@
-search
-======
-test with multiple nodes
-test with links, separate from nodes test
-test order by
-test LIKE criteria
-
 cmd
 ===
 load
 cd: change absolute if starts with /, otherwise relative to current
 dir: list sub-dirs and files of the given node
 
-setprop path name value
-delprop path name
+setnodeprop path name value
+delnodeprop path name
 
 link fromnodepath tonodepath linktype
 unlink fromnodepath tonodepath linktype
@@ -22,7 +15,13 @@ dellinkprop path name
 
 tell: dump everything about the given node: path, props, in-links, out-links
 
+search: name value, list matching paths
+
 ===
+
+cache response to nodes::get_parent_node(nodeid)
+	should speed up get_path(node)
+	flush cache entry if a node is moved or deleted
 
 make loader as fast as possible
 	consider not doing string caching in the class
