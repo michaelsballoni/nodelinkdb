@@ -20,10 +20,26 @@ namespace nldb
 		}
 	};
 
+	struct search_query
+	{
+		std::vector<search_criteria> m_criteria;
+		std::wstring m_orderBy;
+		bool m_orderAscending = true;
+		int64_t m_limit = -1;
+
+		search_query(const std::vector<search_criteria>& criteria = {}, const std::wstring& orderBy = L"", bool orderAscending = true, int limit = -1)
+			: m_criteria(criteria)
+			, m_orderBy(orderBy)
+			, m_orderAscending(orderAscending)
+			, m_limit(limit)
+		{
+		}
+	};
+
 	class search
 	{
 	public:
-		static std::vector<node> find_nodes(db& db, const std::vector<search_criteria>& criteria, const std::wstring& orderBy, bool orderAscending, int limit);
-		static std::vector<link> find_links(db& db, const std::vector<search_criteria>& criteria, const std::wstring& orderBy, bool orderAscending, int limit);
+		static std::vector<node> find_nodes(db& db, const search_query& query);
+		static std::vector<link> find_links(db& db, const search_query& query);
 	};
 }

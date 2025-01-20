@@ -1,9 +1,6 @@
 #include "pch.h"
 #include "CppUnitTest.h"
-#include "db.h"
-#include "links.h"
-#include "nodes.h"
-#include "strings.h"
+#include "nldb.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -15,9 +12,7 @@ namespace nldb
 		TEST_METHOD(TestLinks)
 		{
 			db db("tests.nodes.db");
-			strings::setup(db);
-			nodes::setup(db);
-			links::setup(db);
+			setup_nldb(db);
 
 			node from_node = nodes::create(db, 0, strings::get_id(db, L"from"), 0);
 			node to_node = nodes::create(db, 0, strings::get_id(db, L"to"), 0);

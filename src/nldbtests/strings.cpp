@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "CppUnitTest.h"
-#include "db.h"
-#include "strings.h"
+#include "nldb.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -13,7 +12,7 @@ namespace nldb
 		TEST_METHOD(TestStrings)
 		{
 			db db("tests.strings.db");
-			strings::setup(db);
+			setup_nldb(db);
 
 			try 
 			{

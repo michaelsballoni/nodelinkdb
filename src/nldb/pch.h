@@ -1,13 +1,8 @@
 #pragma once
 
-#include <stdio.h>
-
-#include "includes.h"
-#include "db.h"
-#include "loader.h"
-#include "nodes.h"
-#include "props.h"
-#include "stopwatch.h"
-#include "strings.h"
-
+#include "nldb.h"
 #pragma comment(lib, "nldblib.lib")
+
+#include "stopwatch.h"
+
+#include <stdio.h>

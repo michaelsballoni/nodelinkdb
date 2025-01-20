@@ -8,13 +8,13 @@ namespace nldb
     {
 	private:
 		bool m_isStr;
-		double m_num;
+		int64_t m_num;
 		std::wstring m_str;
 
 	public:
-        strnum() : m_isStr(false), m_str(L"0"), m_num(0.0) {}
-        strnum(const std::wstring& str) : m_isStr(true), m_str(str), m_num(0.0) {}
-        strnum(double num) : m_isStr(false), m_str(std::to_wstring(num)), m_num(num) {}
+        strnum() : m_isStr(false), m_str(L"0"), m_num(0) {}
+        strnum(const std::wstring& str) : m_isStr(true), m_str(str), m_num(0) {}
+        strnum(int64_t num) : m_isStr(false), m_str(std::to_wstring(num)), m_num(num) {}
 
         bool operator==(const strnum& other) const
         {
@@ -23,13 +23,10 @@ namespace nldb
 
         const std::wstring& str() const
         {
-            if (!m_isStr)
-                throw std::runtime_error("not a string");
-			else
-	            return m_str;
+            return m_str;
         }
 
-        double num() const
+		int64_t num() const
         {
             if (m_isStr)
                 throw std::runtime_error("not a number");
@@ -48,7 +45,7 @@ namespace nldb
             }
             else
             {
-                return num2str(m_num);
+                return std::to_wstring(m_num);
             }
         }
     };

@@ -1,5 +1,5 @@
 #pragma once
 
-#include "..\nldblib\includes.h"
+#include "..\nldblib\nldb.h"
 
 #pragma comment(lib, "nldblib.lib")

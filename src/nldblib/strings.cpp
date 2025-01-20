@@ -7,15 +7,6 @@ using namespace nldb;
 std::shared_mutex g_toIdCacheLock;
 std::unordered_map<std::wstring, int64_t> g_toIdCache;
 
-void strings::setup(db& db) 
-{
-	flush_caches();
-
-	db.execSql(L"DROP TABLE IF EXISTS strings", {});
-	db.execSql(L"CREATE TABLE strings (id INTEGER PRIMARY KEY, val STRING UNIQUE NOT NULL)", {});
-	db.execSql(L"INSERT INTO strings (id, val) VALUES (0, '')", {});
-}
-
 int64_t strings::get_id(db& db, const std::wstring& str) 
 {
 	if (str.empty())
@@ -67,7 +58,7 @@ std::wstring strings::get_val(db& db, int64_t id)
 			return it->second;
 	}
 
-	auto opt = db.execScalarString(L"SELECT val FROM strings WHERE id = @id", { { L"@id", (double)id } });
+	auto opt = db.execScalarString(L"SELECT val FROM strings WHERE id = @id", { { L"@id", id } });
 	if (!opt.has_value())
 		throw nldberr("String not found: " + std::to_string(id));
 

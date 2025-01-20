@@ -5,26 +5,6 @@
 
 using namespace nldb;
 
-void nodes::setup(db& db) 
-{
-	db.execSql(L"DROP TABLE IF EXISTS nodes", {});
-	db.execSql
-	(
-		L"CREATE TABLE nodes "
-		L"(" 
-		L"id INTEGER PRIMARY KEY, "
-		L"parent_id INTEGER NOT NULL, " 
-		L"type_string_id INTEGER NOT NULL, " 
-		L"name_string_id INTEGER NOT NULL"
-		L")", 
-	{});
-	
-	db.execSql(L"CREATE UNIQUE INDEX node_parents ON nodes (parent_id, id)", {});
-	db.execSql(L"CREATE UNIQUE INDEX node_names ON nodes (parent_id, name_string_id)", {});
-
-	db.execSql(L"INSERT INTO nodes (id, parent_id, type_string_id, name_string_id) VALUES (0, 0, 0, 0)", {});
-}
-
 node nodes::create(db& db, int64_t parentNodeId, int64_t nameStringId, int64_t typeStringId) 
 {
 	int64_t new_id =
@@ -32,9 +12,9 @@ node nodes::create(db& db, int64_t parentNodeId, int64_t nameStringId, int64_t t
 		(
 			L"INSERT INTO nodes (parent_id, name_string_id, type_string_id) VALUES (@parentNodeId, @nameStringId, @typeStringId)",
 			{
-				{ L"@parentNodeId", (double)parentNodeId },
-				{ L"@nameStringId", (double)nameStringId },
-				{ L"@typeStringId", (double)typeStringId },
+				{ L"@parentNodeId", parentNodeId },
+				{ L"@nameStringId", nameStringId },
+				{ L"@typeStringId", typeStringId },
 			}
 		);
 	return node(new_id, parentNodeId, nameStringId, typeStringId);
@@ -47,8 +27,8 @@ void nodes::move(db& db, int64_t nodeId, int64_t newParentNodeId)
 		(
 			L"UPDATE nodes SET parent_id = @newParentNodeId WHERE id = @nodeId",
 			{
-				{ L"@nodeId", (double)nodeId },
-				{ L"@newParentNodeId", (double)newParentNodeId }
+				{ L"@nodeId", nodeId },
+				{ L"@newParentNodeId", newParentNodeId }
 			}
 		);
 	if (rows_affected != 1)
@@ -61,7 +41,7 @@ std::optional<node> nodes::get_node(db& db, int64_t nodeId)
 		db.execReader
 		(
 			L"SELECT parent_id, name_string_id, type_string_id FROM nodes WHERE id = @nodeId",
-			{ { L"@nodeId", (double)nodeId } }
+			{ { L"@nodeId", nodeId } }
 		);
 	if (!reader->read())
 		return std::nullopt;
@@ -79,8 +59,8 @@ std::optional<node> nodes::get_node_in_parent(db& db, int64_t parentNodeId, int6
 			L"WHERE parent_id = @parentNodeId " 
 			L"AND name_string_id = @nameStringId", 
 			{
-				{ L"@parentNodeId", (double)parentNodeId, },
-				{ L"@nameStringId", (double)nameStringId }
+				{ L"@parentNodeId", parentNodeId, },
+				{ L"@nameStringId", nameStringId }
 			}
 		);
 	if (!reader->read())
@@ -98,12 +78,54 @@ std::optional<node> nodes::get_parent_node(db& db, int64_t nodeId)
 		db.execReader
 		(
 			L"SELECT id, parent_id, name_string_id, type_string_id FROM nodes WHERE id = (SELECT parent_id FROM nodes WHERE id = @id)",
-			{ { L"@id", (double)nodeId } }
+			{ { L"@id", nodeId } }
 		);
 	if (!reader->read())
 		return std::nullopt;
 	else
 		return node(reader->getInt64(0), reader->getInt64(1), reader->getInt64(2), reader->getInt64(3));
+}
+
+std::vector<node> nodes::get_path(db& db, const node& cur)
+{
+	std::vector<node> output;
+	std::unordered_set<int64_t> seen_node_ids;
+	node cur_node = cur;
+	do
+	{
+		output.push_back(cur_node);
+
+		auto new_node_opt = get_parent_node(db, cur_node.m_id);
+		if (!new_node_opt.has_value())
+			break;
+		cur_node = new_node_opt.value();
+
+		if (seen_node_ids.find(cur_node.m_id) != seen_node_ids.end())
+			break;
+		else
+			seen_node_ids.insert(cur_node.m_id);
+	} while (cur_node.m_id > 0);
+	std::reverse(output.begin(), output.end());
+	return output;
+}
+
+std::wstring nodes::get_path_str(db& db, const node& cur)
+{
+	auto path_nodes = get_path(db, cur);
+
+	std::vector<int64_t> path_str_ids;
+	path_str_ids.reserve(path_nodes.size());
+	for (const auto& pnode : path_nodes)
+		path_str_ids.push_back(pnode.m_nameStringId);
+
+	auto strs_map = strings::get_vals(db, path_str_ids);
+
+	std::wstring path_str;
+	for (int64_t path_str_id : path_str_ids) {
+		path_str += L'/';
+		path_str += strs_map[path_str_id];
+	}
+	return path_str;
 }
 
 std::vector<node> nodes::get_path_nodes(db& db, const std::wstring& path) 
@@ -146,39 +168,4 @@ std::vector<node> nodes::get_path_nodes(db& db, const std::wstring& path)
 	}
 
 	return output;
-}
-
-std::wstring nodes::get_path_str(db& db, const node& cur) 
-{
-	std::vector<int64_t> path_str_ids;
-
-	std::unordered_set<int64_t> seen_node_ids;
-	seen_node_ids.insert(cur.m_id);
-
-	node cur_node = cur;
-	do
-	{
-		path_str_ids.push_back(cur_node.m_nameStringId);
-
-		auto new_node_opt = nodes::get_parent_node(db, cur_node.m_id);
-		if (!new_node_opt.has_value())
-			break;
-		cur_node = new_node_opt.value();
-
-		if (seen_node_ids.find(cur_node.m_id) != seen_node_ids.end())
-			break;
-		else
-			seen_node_ids.insert(cur.m_id);
-	} while (cur_node.m_id > 0);
-
-	std::reverse(path_str_ids.begin(), path_str_ids.end());
-
-	auto strs_map = strings::get_vals(db, path_str_ids);
-
-	std::wstring path_str;
-	for (int64_t path_str_id : path_str_ids) {
-		path_str += L'/';
-		path_str += strs_map[path_str_id];
-	}
-	return path_str;
 }

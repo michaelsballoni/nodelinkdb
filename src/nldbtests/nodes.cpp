@@ -1,8 +1,6 @@
 #include "pch.h"
 #include "CppUnitTest.h"
-#include "db.h"
-#include "nodes.h"
-#include "strings.h"
+#include "nldb.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -14,8 +12,7 @@ namespace nldb
 		TEST_METHOD(TestNodes)
 		{
 			db db("tests.nodes.db");
-			strings::setup(db);
-			nodes::setup(db);
+			setup_nldb(db);
 
 			auto null_node_opt = nodes::get_parent_node(db, 0);
 			if (!null_node_opt.has_value())

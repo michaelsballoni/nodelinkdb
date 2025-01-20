@@ -31,16 +31,7 @@ int wmain(int argc, wchar_t* argv[])
 		if (cmd == L"init") 
 		{
 			printf("Setting up...");
-
-			printf("strings...");
-			strings::setup(db);
-
-			printf("nodes...");
-			nodes::setup(db);
-
-			printf("props...");
-			props::setup(db);
-
+			setup_nldb(db);
 			printf("\nAll done.\n");
 			return 0;
 		}

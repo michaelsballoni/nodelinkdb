@@ -1,9 +1,9 @@
-
 search
 ======
-SQL generation
-get_nodes([<name1, value1>, ...])
-get_links([<name1, value1 >, ...])
+test with multiple nodes
+test with links, separate from nodes test
+test order by
+test LIKE criteria
 
 cmd
 ===
@@ -21,3 +21,11 @@ setlinkprop path name value
 dellinkprop path name
 
 tell: dump everything about the given node: path, props, in-links, out-links
+
+===
+
+make loader as fast as possible
+	consider not doing string caching in the class
+		rely on strings class caching
+
+share with Rod, see if it can help him at all

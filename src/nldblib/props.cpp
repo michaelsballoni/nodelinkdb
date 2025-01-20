@@ -5,14 +5,6 @@
 
 using namespace nldb;
 
-void props::setup(db& db) 
-{
-	db.execSql(L"DROP TABLE IF EXISTS props", {});
-	db.execSql(L"CREATE TABLE props (itemtypstrid INTEGER, itemid INTEGER, namestrid INTEGER, valstrid INTEGER)", {});
-	db.execSql(L"CREATE UNIQUE INDEX item_props ON props (itemtypstrid, itemid, namestrid)", {});
-	db.execSql(L"CREATE INDEX prop_vals ON props (valstrid, namestrid, itemtypstrid, itemid)", {});
-}
-
 void props::set(db& db, int64_t item_type_string_id, int64_t item_id, int64_t name_string_id, int64_t value_string_id) 
 {
 	if (value_string_id >= 0)
@@ -23,10 +15,10 @@ void props::set(db& db, int64_t item_type_string_id, int64_t item_id, int64_t na
 			L"VALUES(@item_type_string_id, @item_id, @name_string_id, @value_string_id) "
 			L"ON CONFLICT(itemtypstrid, itemid, namestrid) DO UPDATE SET valstrid = @value_string_id",
 			{
-				{ L"@item_type_string_id", (double)item_type_string_id },
-				{ L"@item_id", (double)item_id },
-				{ L"@name_string_id", (double)name_string_id },
-				{ L"@value_string_id", (double)value_string_id },
+				{ L"@item_type_string_id", item_type_string_id },
+				{ L"@item_id", item_id },
+				{ L"@name_string_id", name_string_id },
+				{ L"@value_string_id", value_string_id },
 			}
 		);
 	}
@@ -38,9 +30,9 @@ void props::set(db& db, int64_t item_type_string_id, int64_t item_id, int64_t na
 			(
 				L"DELETE FROM props WHERE itemtypstrid = @item_type_string_id AND itemid = @item_id AND namestrid = @name_string_id",
 				{
-					{ L"@item_type_string_id", (double)item_type_string_id },
-					{ L"@item_id", (double)item_id },
-					{ L"@name_string_id", (double)name_string_id },
+					{ L"@item_type_string_id", item_type_string_id },
+					{ L"@item_id", item_id },
+					{ L"@name_string_id", name_string_id },
 				}
 			);
 		}
@@ -50,8 +42,8 @@ void props::set(db& db, int64_t item_type_string_id, int64_t item_id, int64_t na
 			(
 				L"DELETE FROM props WHERE itemtypstrid = @item_type_string_id AND itemid = @item_id",
 				{
-					{ L"@item_type_string_id", (double)item_type_string_id },
-					{ L"@item_id", (double)item_id },
+					{ L"@item_type_string_id", item_type_string_id },
+					{ L"@item_id", item_id },
 				}
 			);
 		}
@@ -66,8 +58,8 @@ std::unordered_map<int64_t, int64_t> props::get(db& db, int64_t item_type_string
 		(
 			L"SELECT namestrid, valstrid FROM props WHERE itemtypstrid = @item_type_string_id AND itemid = @item_id", 
 			{ 
-				{L"@item_type_string_id", (double)item_type_string_id },
-				{L"@item_id", (double)item_id },
+				{L"@item_type_string_id", item_type_string_id },
+				{L"@item_id", item_id },
 			}
 		);
 	while (reader->read()) 

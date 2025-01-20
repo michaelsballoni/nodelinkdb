@@ -52,9 +52,9 @@ namespace nldb
         switch (columnType)
         {
         case SQLITE_INTEGER:
-            return static_cast<double>(sqlite3_column_int64(m_stmt, idx));
+            return sqlite3_column_int64(m_stmt, idx);
         case SQLITE_FLOAT:
-            return sqlite3_column_double(m_stmt, idx);
+            return static_cast<int64_t>(sqlite3_column_double(m_stmt, idx));
         case SQLITE_NULL:
             isNull = true;
             return toWideStr("null");

@@ -1,9 +1,6 @@
 #include "pch.h"
 #include "CppUnitTest.h"
-#include "db.h"
-#include "nodes.h"
-#include "props.h"
-#include "strings.h"
+#include "nldb.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -15,9 +12,7 @@ namespace nldb
 		TEST_METHOD(TestProps)
 		{
 			db db("tests.props.db");
-			strings::setup(db);
-			nodes::setup(db);
-			props::setup(db);
+			setup_nldb(db);
 
 			int64_t item_type_id = strings::get_id(db, L"node");
 			auto node = nodes::get_node(db, 0).value();
