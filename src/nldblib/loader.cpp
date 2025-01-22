@@ -54,6 +54,6 @@ void loader::load_directory(const std::wstring& dirPath, const node& cur_node)
 			new_node = node_in_path.value();
 
 		if (is_dir)
-			load_directory(cur_path.append(name), new_node);
+			load_directory(cur_path, new_node);
 	}
 }

@@ -1,6 +1,13 @@
+process feedback from rod, see how he plans to use this
+
+nodes::has_parent(cur, parent)
+	just compute the path and look for the parent
+
+nodes::get_children(node)
+	recurse collecting a unique set of nodes
+	
 cmd
 ===
-load
 cd: change absolute if starts with /, otherwise relative to current
 dir: list sub-dirs and files of the given node
 
@@ -13,18 +20,12 @@ unlink fromnodepath tonodepath linktype
 setlinkprop path name value
 dellinkprop path name
 
-tell: dump everything about the given node: path, props, in-links, out-links
+tell: dump everything about the current node: path, props, in-links, out-links
 
-search: name value, list matching paths
+search: name value -> list matching paths
 
 ===
 
 cache response to nodes::get_parent_node(nodeid)
 	should speed up get_path(node)
 	flush cache entry if a node is moved or deleted
-
-make loader as fast as possible
-	consider not doing string caching in the class
-		rely on strings class caching
-
-share with Rod, see if it can help him at all
