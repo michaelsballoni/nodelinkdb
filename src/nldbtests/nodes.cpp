@@ -4,6 +4,14 @@
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
+bool has(const std::vector<nldb::node>& vec, int64_t id)
+{
+	for (size_t i = 0; i < vec.size(); ++i)
+		if (vec[i].m_id == id)
+			return true;
+	return false;
+}
+
 namespace nldb
 {
 	TEST_CLASS(nodetests)
@@ -15,19 +23,25 @@ namespace nldb
 			setup_nldb(db);
 
 			auto null_node_opt = nodes::get_parent_node(db, 0);
-			if (!null_node_opt.has_value())
-				Assert::Fail();
+			Assert::IsTrue(null_node_opt.has_value());
 			node null_node = null_node_opt.value();
 			Assert::AreEqual(int64_t(0), null_node.m_id);
 			Assert::AreEqual(int64_t(0), null_node.m_parentId);
 			Assert::AreEqual(int64_t(0), null_node.m_nameStringId);
 			Assert::AreEqual(int64_t(0), null_node.m_typeStringId);
+			Assert::IsTrue(nodes::get_children(db, 0).empty());
+			Assert::IsTrue(nodes::get_node_parents(db, 0).empty());
 
 			node node1 = nodes::create(db, 0, strings::get_id(db, L"foo"), strings::get_id(db, L"bar"));
 			Assert::AreNotEqual(int64_t(0), node1.m_id);
 			Assert::AreEqual(int64_t(0), node1.m_parentId);
 			Assert::AreEqual(strings::get_id(db, L"foo"), node1.m_nameStringId);
 			Assert::AreEqual(strings::get_id(db, L"bar"), node1.m_typeStringId);
+			Assert::IsTrue(nodes::get_children(db, node1.m_id).empty());
+			Assert::AreEqual(1U, nodes::get_node_parents(db, node1.m_id).size());
+			Assert::AreEqual(int64_t(0), nodes::get_node_parents(db, node1.m_id)[0].m_id);
+			Assert::AreEqual(1U, nodes::get_children(db, 0).size());
+			Assert::AreEqual(node1.m_id, nodes::get_children(db, 0)[0].m_id);
 
 			node node2 = nodes::create(db, 0, strings::get_id(db, L"blet"), strings::get_id(db, L"monkey"));
 			Assert::AreNotEqual(int64_t(0), node2.m_id);
@@ -35,8 +49,17 @@ namespace nldb
 			Assert::AreEqual(int64_t(0), node2.m_parentId);
 			Assert::AreEqual(strings::get_id(db, L"blet"), node2.m_nameStringId);
 			Assert::AreEqual(strings::get_id(db, L"monkey"), node2.m_typeStringId);
+			Assert::IsTrue(nodes::get_children(db, node2.m_id).empty());
+			Assert::AreEqual(1U, nodes::get_node_parents(db, node2.m_id).size());
+			Assert::AreEqual(int64_t(0), nodes::get_node_parents(db, node2.m_id)[0].m_id);
+			Assert::AreEqual(2U, nodes::get_children(db, 0).size());
+			Assert::IsTrue(has(nodes::get_children(db, 0), node1.m_id));
+			Assert::IsTrue(has(nodes::get_children(db, 0), node2.m_id));
 
 			nodes::move(db, node2.m_id, node1.m_id);
+			Assert::AreEqual(1U, nodes::get_children(db, node1.m_id).size());
+			Assert::AreEqual(node2.m_id, nodes::get_children(db, node1.m_id)[0].m_id);
+			Assert::IsTrue(nodes::get_children(db, node2.m_id).empty());
 
 			auto node2_opt = nodes::get_node(db, node2.m_id);
 			if (!node2_opt.has_value())

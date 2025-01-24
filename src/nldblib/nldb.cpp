@@ -19,13 +19,13 @@ void nldb::setup_nldb(db& db)
 		L"parent_id INTEGER NOT NULL, "
 		L"type_string_id INTEGER NOT NULL, "
 		L"name_string_id INTEGER NOT NULL, "
-		L"parents STRING NOT NULL, "
+		L"parents STRING NOT NULL DEFAULT '', "
 		L"payload STRING NOT NULL DEFAULT ''"
 		L")",
 		{});
 	db.execSql(L"CREATE UNIQUE INDEX node_parents ON nodes (parent_id, id)", {});
 	db.execSql(L"CREATE UNIQUE INDEX node_names ON nodes (parent_id, name_string_id)", {});
-	db.execSql(L"CREATE UNIQUE INDEX node_parent_strs ON nodes (parents)", {});
+	db.execSql(L"CREATE UNIQUE INDEX node_parent_strs ON nodes (parents, id)", {});
 	db.execSql(L"INSERT INTO nodes (id, parent_id, type_string_id, name_string_id) VALUES (0, 0, 0, 0)", {});
 
 	// links
