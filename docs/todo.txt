@@ -1,15 +1,30 @@
 process feedback from rod, see how he plans to use this
 
-nodes::has_parent(cur, parent)
-	just compute the path and look for the parent
+test
+====
+nodes::remove(nodeId)
 
-nodes::get_children(node)
-	recurse collecting a unique set of nodes
-	
-cmd
+api
 ===
+nodes::copy(nodeId, newParentId, newNameId)
+nodes:rename(nodeId, newNameId)
+add access to payload
+
+search
+======
+add parent node to look under
+add name search
+add payload search
+
+
+sample
+======
 cd: change absolute if starts with /, otherwise relative to current
 dir: list sub-dirs and files of the given node
+
+move
+copy
+ren
 
 setnodeprop path name value
 delnodeprop path name
@@ -17,15 +32,20 @@ delnodeprop path name
 link fromnodepath tonodepath linktype
 unlink fromnodepath tonodepath linktype
 
-setlinkprop path name value
-dellinkprop path name
+setlinkprop from to name value
+dellinkprop from to name
 
-tell: dump everything about the current node: path, props, in-links, out-links
+tell: dump everything about the current node: path, props, in-links, out-links, link props
 
-search: name value -> list matching paths
+search: name value -> list matching paths efficiently
 
 ===
 
 cache response to nodes::get_parent_node(nodeid)
 	should speed up get_path(node)
 	flush cache entry if a node is moved or deleted
+
+===
+
+Write README.MD file describing the library, the tests, and the nldb.exe sample app:
+how to build it, how to consume it, how to maintain it
