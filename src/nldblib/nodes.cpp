@@ -20,7 +20,9 @@ static std::wstring ids_to_sql_in(const std::vector<int64_t>& ids)
 	return output;
 }
 
-static std::vector<int64_t> str_to_ids(const std::wstring& str, wchar_t separator)
+// only IDs found between separators are returned
+// nothing in, nothing out
+static std::vector<int64_t> str_to_ids(const std::wstring& str, wchar_t separator) 
 {
 	std::vector<int64_t> ids;
 	std::wstring collector;
@@ -61,8 +63,12 @@ static std::wstring ids_to_parents_str(const std::vector<int64_t>& ids)
 
 static std::vector<int64_t> get_parents_node_ids(db& db, int64_t nodeId)
 {
+	if (nodeId == 0)
+		return std::vector<int64_t>();
+
 	auto parents_ids_str_opt = 
 		db.execScalarString(L"SELECT parents FROM nodes WHERE id = @nodeId", { {L"@nodeId", nodeId} });
+	
 	if (!parents_ids_str_opt.has_value())
 		throw nldberr("Parents to node not found: " + std::to_string(nodeId));
 	else
@@ -107,12 +113,27 @@ node nodes::create(db& db, int64_t parentNodeId, int64_t nameStringId, int64_t t
 				}
 			);
 	}
+	else if (parents_str.empty())
+	{
+		new_id =
+			db.execInsert
+			(
+				L"INSERT INTO nodes (parent_id, name_string_id, type_string_id, payload) " 
+				L"VALUES (@parentNodeId, @nameStringId, @typeStringId, @payload)",
+				{
+					{ L"@parentNodeId", parentNodeId },
+					{ L"@nameStringId", nameStringId },
+					{ L"@typeStringId", typeStringId },
+					{ L"@payload", payload }
+				}
+			);
+	}
 	else
 	{
 		new_id =
 			db.execInsert
 			(
-				L"INSERT INTO nodes (parent_id, name_string_id, type_string_id, parents, payload) " 
+				L"INSERT INTO nodes (parent_id, name_string_id, type_string_id, parents, payload) "
 				L"VALUES (@parentNodeId, @nameStringId, @typeStringId, @parents, @payload)",
 				{
 					{ L"@parentNodeId", parentNodeId },
@@ -289,6 +310,8 @@ std::vector<node> nodes::get_node_parents(db& db, int64_t nodeId)
 		return std::vector<node>();
 
 	auto parents_node_ids = get_parents_node_ids(db, nodeId);
+	if (parents_node_ids.empty())
+		return std::vector<node>();
 
 	std::unordered_map<int64_t, node> collector;
 	collector.reserve(parents_node_ids.size());
@@ -337,10 +360,12 @@ std::vector<node> nodes::get_children(db& db, int64_t nodeId)
 		db.execScalarString(L"SELECT parents FROM nodes WHERE id = @id", { { L"@id", nodeId } });
 	if (!original_node_parents_opt.has_value())
 		throw nldberr("Node to remove not found: " + std::to_string(nodeId));
+
 	std::wstring original_node_parents_str = original_node_parents_opt.value();
+
 	std::wstring original_node_parents_like;
 	if (original_node_parents_str.empty())
-		original_node_parents_like = L"%";
+		original_node_parents_like = L"/" + original_node_parents_str + std::to_wstring(nodeId) + L"/%";
 	else
 		original_node_parents_like = original_node_parents_str + std::to_wstring(nodeId) + L"/%";
 
@@ -448,25 +473,3 @@ std::vector<node> nodes::get_path_nodes(db& db, const std::wstring& path)
 
 	return output;
 }
-
-/* FORNOW
-std::vector<std::wstring> split(const std::wstring& str, wchar_t separator)
-{
-	std::vector<std::wstring> output;
-	std::wstring collector;
-	for (auto c : str)
-	{
-		if (c == separator)
-		{
-			output.push_back(collector);
-			collector.clear();
-		}
-		else
-			collector.push_back(c);
-	}
-	if (!collector.empty())
-		output.push_back(collector);
-	return output;
-}
-
-*/

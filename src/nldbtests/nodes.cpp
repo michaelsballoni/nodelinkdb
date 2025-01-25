@@ -38,8 +38,7 @@ namespace nldb
 			Assert::AreEqual(strings::get_id(db, L"foo"), node1.m_nameStringId);
 			Assert::AreEqual(strings::get_id(db, L"bar"), node1.m_typeStringId);
 			Assert::IsTrue(nodes::get_children(db, node1.m_id).empty());
-			Assert::AreEqual(1U, nodes::get_node_parents(db, node1.m_id).size());
-			Assert::AreEqual(int64_t(0), nodes::get_node_parents(db, node1.m_id)[0].m_id);
+			Assert::IsTrue(nodes::get_node_parents(db, node1.m_id).empty());
 			Assert::AreEqual(1U, nodes::get_children(db, 0).size());
 			Assert::AreEqual(node1.m_id, nodes::get_children(db, 0)[0].m_id);
 
@@ -50,8 +49,7 @@ namespace nldb
 			Assert::AreEqual(strings::get_id(db, L"blet"), node2.m_nameStringId);
 			Assert::AreEqual(strings::get_id(db, L"monkey"), node2.m_typeStringId);
 			Assert::IsTrue(nodes::get_children(db, node2.m_id).empty());
-			Assert::AreEqual(1U, nodes::get_node_parents(db, node2.m_id).size());
-			Assert::AreEqual(int64_t(0), nodes::get_node_parents(db, node2.m_id)[0].m_id);
+			Assert::IsTrue(nodes::get_node_parents(db, node2.m_id).empty());
 			Assert::AreEqual(2U, nodes::get_children(db, 0).size());
 			Assert::IsTrue(has(nodes::get_children(db, 0), node1.m_id));
 			Assert::IsTrue(has(nodes::get_children(db, 0), node2.m_id));
