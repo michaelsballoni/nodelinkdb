@@ -7,7 +7,7 @@ namespace nldb
 {
 	class nodes {
 	public:
-		static node create(db& db, int64_t parentNodeId, int64_t nameStringId, int64_t typeStringId, const std::wstring& payload = L"");
+		static node create(db& db, int64_t parentNodeId, int64_t nameStringId, int64_t typeStringId = 0, const std::wstring& payload = L"");
 		static void move(db& db, int64_t nodeId, int64_t newParentNodeId);
 		static void remove(db& db, int64_t nodeId);
 
