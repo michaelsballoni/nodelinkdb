@@ -8,7 +8,7 @@ using namespace nldb;
 static std::wstring ids_to_sql_in(const std::vector<int64_t>& ids)
 {
 	if (ids.empty())
-		throw nldberr("ids_to_sql_in called with no IDs");
+		throw nldberr("ids_to_sql_in: called with no IDs");
 
 	std::wstring output;
 	for (auto id : ids)
@@ -70,7 +70,7 @@ static std::vector<int64_t> get_parents_node_ids(db& db, int64_t nodeId)
 		db.execScalarString(L"SELECT parents FROM nodes WHERE id = @nodeId", { {L"@nodeId", nodeId} });
 	
 	if (!parents_ids_str_opt.has_value())
-		throw nldberr("Parents to node not found: " + std::to_string(nodeId));
+		throw nldberr("get_parents_node_ids: Node not found: " + std::to_string(nodeId));
 	else
 		return str_to_ids(parents_ids_str_opt.value(), '/');
 }
@@ -147,27 +147,36 @@ node nodes::create(db& db, int64_t parentNodeId, int64_t nameStringId, int64_t t
 	return node(new_id, parentNodeId, nameStringId, typeStringId);
 }
 
+// build LIKE path to node where it exists initially as we'll need to update its children
+static std::wstring get_child_nodes_like(db& db, int64_t nodeId)
+{
+	auto original_node_parents_opt =
+		db.execScalarString(L"SELECT parents FROM nodes WHERE id = @id", { { L"@id", nodeId } });
+	if (!original_node_parents_opt.has_value())
+		throw nldberr("nodes::move: Node not found: " + std::to_string(nodeId));
+
+	std::wstring original_node_parents = original_node_parents_opt.value();
+	if (original_node_parents.empty() || original_node_parents.back() != '/')
+		original_node_parents = L"/";
+	original_node_parents += std::to_wstring(nodeId) + L"/%";
+	return original_node_parents;
+}
+
 void nodes::move(db& db, int64_t nodeId, int64_t newParentNodeId) 
 {
 	// check inputs
 	if (nodeId == 0)
-		throw nldberr("Cannot move node: " + std::to_string(nodeId));
-
-	// build LIKE path to node where it exists initially as we'll need to update its children
-	auto original_node_parents_opt = 
-		db.execScalarString(L"SELECT parents FROM nodes WHERE id = @id", { { L"@id", nodeId } });
-	if (!original_node_parents_opt.has_value())
-		throw nldberr("Node to move not found: " + std::to_string(nodeId));
-	std::wstring original_node_parents = original_node_parents_opt.value() + std::to_wstring(nodeId) + L"/%";
+		throw nldberr("nodes::move: Cannot move null node");
 
 	// collect all children nodes
+	std::wstring child_nodes_like = get_child_nodes_like(db, nodeId);
 	std::vector<int64_t> child_node_ids;
 	{
 		auto child_reader = 
 			db.execReader
 			(
 				L"SELECT id FROM nodes WHERE parents LIKE @childParents", 
-				{ { L"@childParents", original_node_parents } }
+				{ { L"@childParents", child_nodes_like } }
 			);
 		while (child_reader->read())
 			child_node_ids.push_back(child_reader->getInt64(0));
@@ -192,7 +201,7 @@ void nodes::move(db& db, int64_t nodeId, int64_t newParentNodeId)
 				}
 				);
 		if (rows_affected != 1)
-			throw nldberr("Node not moved: " + std::to_string(nodeId));
+			throw nldberr("nodes::move: Node not moved: " + std::to_string(nodeId));
 	}
 
 	// update the parents of all children nodes
@@ -209,7 +218,7 @@ void nodes::move(db& db, int64_t nodeId, int64_t newParentNodeId)
 				}
 				);
 		if (rows_affected != 1)
-			throw nldberr("Child node not updated: " + std::to_string(child_id));
+			throw nldberr("nodes::move: Child node not updated: " + std::to_string(child_id));
 	}
 }
 
@@ -217,23 +226,17 @@ void nodes::remove(db& db, int64_t nodeId)
 {
 	// check inputs
 	if (nodeId == 0)
-		throw nldberr("Cannot remove node: " + std::to_string(nodeId));
-
-	// build LIKE path to node where it exists initially as we'll need to update its children
-	auto original_node_parents_opt = 
-		db.execScalarString(L"SELECT parents FROM nodes WHERE id = @id", { { L"@id", nodeId } });
-	if (!original_node_parents_opt.has_value())
-		throw nldberr("Node to remove not found: " + std::to_string(nodeId));
-	std::wstring original_node_parents = original_node_parents_opt.value() + std::to_wstring(nodeId) + L"/%";
+		throw nldberr("nodes::remove: Cannot remove node: " + std::to_string(nodeId));
 
 	// collect all children nodes
+	std::wstring child_nodes_like = get_child_nodes_like(db, nodeId);
 	std::vector<int64_t> child_node_ids;
 	{
 		auto child_reader = 
 			db.execReader
 			(
 				L"SELECT id FROM nodes WHERE parents LIKE @childParents", 
-				{ { L"@childParents", original_node_parents } }
+				{ { L"@childParents", child_nodes_like } }
 			);
 		while (child_reader->read())
 			child_node_ids.push_back(child_reader->getInt64(0));
@@ -243,14 +246,14 @@ void nodes::remove(db& db, int64_t nodeId)
 	if (!child_node_ids.empty())
 	{
 		int rows_affected = db.execSql(L"DELETE FROM nodes WHERE id IN (@nodeIds)", { { L"@nodeIds", ids_to_sql_in(child_node_ids) } });
-		if (size_t(rows_affected) != child_node_ids.size())
-			throw nldberr("Not all child nodes removed: " + std::to_string(rows_affected));
+		if (rows_affected != static_cast<int64_t>(child_node_ids.size()))
+			throw nldberr("nodes::remove: Not all child nodes removed: " + std::to_string(rows_affected));
 	}
 
 	// delete the node
 	int rows_affected = db.execSql(L"DELETE FROM nodes WHERE id = @nodeId", { { L"@nodeId", nodeId } });
 	if (rows_affected != 1)
-		throw nldberr("Node not removed: " + std::to_string(nodeId));
+		throw nldberr("nodes::remove: Node not removed: " + std::to_string(nodeId));
 }
 
 std::optional<node> nodes::get_node(db& db, int64_t nodeId) 
@@ -290,8 +293,11 @@ std::optional<node> nodes::get_node_in_parent(db& db, int64_t parentNodeId, int6
 	return node(id, parentNodeId, nameStringId, type_string_id);
 }
 
-std::optional<node> nodes::get_parent_node(db& db, int64_t nodeId) 
+std::optional<node> nodes::get_parent(db& db, int64_t nodeId) 
 {
+	if (nodeId == 0)
+		return std::nullopt;
+
 	auto reader =
 		db.execReader
 		(
@@ -304,7 +310,7 @@ std::optional<node> nodes::get_parent_node(db& db, int64_t nodeId)
 		return node(reader->getInt64(0), reader->getInt64(1), reader->getInt64(2), reader->getInt64(3));
 }
 
-std::vector<node> nodes::get_node_parents(db& db, int64_t nodeId)
+std::vector<node> nodes::get_parents(db& db, int64_t nodeId)
 {
 	if (nodeId == 0)
 		return std::vector<node>();
@@ -330,7 +336,7 @@ std::vector<node> nodes::get_node_parents(db& db, int64_t nodeId)
 	{
 		auto it = collector.find(id);
 		if (it == collector.end())
-			throw nldberr("Path to node not found: " + std::to_string(id));
+			throw nldberr("nodes::get_node_parents: Path to node not found: " + std::to_string(id));
 		else
 			output.emplace_back(it->second);
 	}
@@ -347,9 +353,9 @@ std::vector<node> nodes::get_children(db& db, int64_t nodeId)
 		while (all_reader->read())
 			all_child_nodes.emplace_back
 			(
-				all_reader->getInt64(0), 
-				all_reader->getInt64(1), 
-				all_reader->getInt64(2), 
+				all_reader->getInt64(0),
+				all_reader->getInt64(1),
+				all_reader->getInt64(2),
 				all_reader->getInt64(3)
 			);
 		return all_child_nodes;
@@ -359,7 +365,7 @@ std::vector<node> nodes::get_children(db& db, int64_t nodeId)
 	auto original_node_parents_opt =
 		db.execScalarString(L"SELECT parents FROM nodes WHERE id = @id", { { L"@id", nodeId } });
 	if (!original_node_parents_opt.has_value())
-		throw nldberr("Node to remove not found: " + std::to_string(nodeId));
+		throw nldberr("nodes::get_children: Node not found: " + std::to_string(nodeId));
 
 	std::wstring original_node_parents_str = original_node_parents_opt.value();
 
@@ -396,9 +402,10 @@ std::vector<node> nodes::get_path(db& db, const node& cur)
 	node cur_node = cur;
 	do
 	{
-		output.push_back(cur_node);
+		if (cur_node.m_id != 0)
+			output.push_back(cur_node);
 
-		auto new_node_opt = get_parent_node(db, cur_node.m_id);
+		auto new_node_opt = get_parent(db, cur_node.m_id);
 		if (!new_node_opt.has_value())
 			break;
 		cur_node = new_node_opt.value();
@@ -407,7 +414,7 @@ std::vector<node> nodes::get_path(db& db, const node& cur)
 			break;
 		else
 			seen_node_ids.insert(cur_node.m_id);
-	} while (cur_node.m_id > 0);
+	} while (cur_node.m_id != 0);
 	std::reverse(output.begin(), output.end());
 	return output;
 }
@@ -442,8 +449,11 @@ std::vector<node> nodes::get_path_nodes(db& db, const std::wstring& path)
 	{
 		if (c == '/') 
 		{
-			splits.push_back(builder);
-			builder.clear();
+			if (!builder.empty())
+			{
+				splits.push_back(builder);
+				builder.clear();
+			}
 		}
 		else
 			builder += c;
@@ -452,19 +462,17 @@ std::vector<node> nodes::get_path_nodes(db& db, const std::wstring& path)
 		splits.push_back(builder);
 
 	if (splits.empty())
-		return { node() };
+		return { };
 	else
 		output.reserve(splits.size());
 
 	int64_t cur_node_id = 0;
-	for (size_t p = 0; p < splits.size(); ++p) {
-		const std::wstring& part = splits[p];
-
+	for (const auto& part : splits) {
 		int64_t cur_name_string_id = strings::get_id(db, part);
 
 		auto node_opt = get_node_in_parent(db, cur_node_id, cur_name_string_id);
 		if (!node_opt.has_value())
-			throw nldberr("Node not found: " + toNarrowStr(part));
+			throw nldberr("nodes::get_path_nodes: Node not found: " + toNarrowStr(part));
 
 		output.emplace_back(node_opt.value());
 

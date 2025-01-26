@@ -60,7 +60,7 @@ std::wstring strings::get_val(db& db, int64_t id)
 
 	auto opt = db.execScalarString(L"SELECT val FROM strings WHERE id = @id", { { L"@id", id } });
 	if (!opt.has_value())
-		throw nldberr("String not found: " + std::to_string(id));
+		throw nldberr("strings::get_val: String not found: " + std::to_string(id));
 
 	std::wstring val = opt.value();
 	{
@@ -114,7 +114,7 @@ std::unordered_map<int64_t, std::wstring> strings::get_vals(db& db, const std::v
 	
 	for (int64_t id : ids)
 		if (ret_val.find(id) == ret_val.end())
-			throw nldberr("String not found: " + std::to_string(id));
+			throw nldberr("strings::get_vals: String not found: " + std::to_string(id));
 
 	return ret_val;
 }
