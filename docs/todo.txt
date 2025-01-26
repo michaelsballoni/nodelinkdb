@@ -1,11 +1,4 @@
-search
-======
-add parent node to look under
-add name search
-add payload search
-optionally pull payload out
-
-process feedback from rod, see how he plans to use this
+get feedback from rod, see if and how he plans to use this going forward
 
 sample
 ======

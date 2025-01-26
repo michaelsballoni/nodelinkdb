@@ -23,6 +23,8 @@ namespace nldb
 
 		static std::vector<node> get_path(db& db, const node& cur);
 		static std::wstring get_path_str(db& db, const node& cur);
-		static std::vector<node> get_path_nodes(db& db, const std::wstring& path);
+		static std::optional<std::vector<node>> get_path_nodes(db& db, const std::wstring& path);
+
+		static std::optional<std::wstring> get_path_to_parent_like(db& db, const std::wstring& path);
 	};
 }

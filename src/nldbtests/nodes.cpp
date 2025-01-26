@@ -78,16 +78,16 @@ namespace nldb
 			std::wstring node2_path = nodes::get_path_str(db, node2b);
 			Assert::AreEqual(std::wstring(L"/foo/blet"), node2_path);
 
-			Assert::IsTrue(nodes::get_path_nodes(db, L"").empty());
+			Assert::IsTrue(nodes::get_path_nodes(db, L"").value().empty());
 
 			auto node1_path_nodes = nodes::get_path_nodes(db, node1_path);
-			Assert::AreEqual(size_t(1), node1_path_nodes.size());
-			Assert::IsTrue(node1 == node1_path_nodes[0]);
+			Assert::AreEqual(size_t(1), node1_path_nodes.value().size());
+			Assert::IsTrue(node1 == node1_path_nodes.value()[0]);
 
 			auto node2_path_nodes = nodes::get_path_nodes(db, node2_path);
-			Assert::AreEqual(size_t(2), node2_path_nodes.size());
-			Assert::IsTrue(node1 == node2_path_nodes[0]);
-			Assert::IsTrue(node2b == node2_path_nodes[1]);
+			Assert::AreEqual(size_t(2), node2_path_nodes.value().size());
+			Assert::IsTrue(node1 == node2_path_nodes.value()[0]);
+			Assert::IsTrue(node2b == node2_path_nodes.value()[1]);
 
 			// set a payload
 			nodes::set_payload(db, node2.m_id, L"foobletbarmonkey");

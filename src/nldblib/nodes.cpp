@@ -464,7 +464,7 @@ std::wstring nodes::get_path_str(db& db, const node& cur)
 	return path_str;
 }
 
-std::vector<node> nodes::get_path_nodes(db& db, const std::wstring& path) 
+std::optional<std::vector<node>> nodes::get_path_nodes(db& db, const std::wstring& path) 
 {
 	std::vector<node> output;
 
@@ -497,11 +497,25 @@ std::vector<node> nodes::get_path_nodes(db& db, const std::wstring& path)
 
 		auto node_opt = get_node_in_parent(db, cur_node_id, cur_name_string_id);
 		if (!node_opt.has_value())
-			throw nldberr("nodes::get_path_nodes: Node not found: " + toNarrowStr(part));
+			return std::nullopt;
 
 		output.emplace_back(node_opt.value());
 		cur_node_id = node_opt.value().m_id;
 	}
 
 	return output;
+}
+
+std::optional<std::wstring> nodes::get_path_to_parent_like(db& db, const std::wstring& path)
+{
+	auto path_nodes_opt = get_path_nodes(db, path);
+	if (!path_nodes_opt.has_value())
+		return std::nullopt;
+	
+	auto path_nodes = path_nodes_opt.value();
+	if (path_nodes.empty())
+		return std::nullopt;
+
+	std::wstring child_like = get_child_nodes_like(db, path_nodes.back().m_id);
+	return child_like;
 }

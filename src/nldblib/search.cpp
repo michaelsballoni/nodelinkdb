@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "search.h"
 #include "strings.h"
+#include "nodes.h"
 #include "core.h"
 
 using namespace nldb;
@@ -15,6 +16,10 @@ struct find_params
 
 std::wstring get_find_sql(db& db, const find_params& findParams, paramap& sqlParams)
 {
+	int64_t path_string_id = strings::get_id(db, L"path");
+	int64_t name_string_id = strings::get_id(db, L"name");
+	int64_t payload_string_id = strings::get_id(db, L"payload");
+
 	sqlParams[L"@node_item_type_id"] = strings::get_id(db, findParams.m_itemType);
 	sqlParams[L"@order_by_string_id"] = strings::get_id(db, findParams.m_pQuery->m_orderBy);
 
@@ -22,33 +27,75 @@ std::wstring get_find_sql(db& db, const find_params& findParams, paramap& sqlPar
 	if (!findParams.m_pQuery->m_orderBy.empty())
 		sql += L"JOIN props AS ItemProps ON ItemProps.itemid = Items.id JOIN strings AS ItemStrings ON ItemStrings.id = ItemProps.valstrid ";
 
-	sql += L"WHERE ";
+	std::wstring where;
 	int param_num = 1;
 	for (const auto& crit : findParams.m_pQuery->m_criteria)
 	{
-		if (param_num > 1)
-			sql += L"\nAND ";
+		if (!where.empty())
+			where += L"\nAND ";
 
 		std::wstring param_num_str = std::to_wstring(param_num);
 		++param_num;
 
-		sqlParams[L"@namestrid" + param_num_str] = crit.m_nameStringId;
-
-		std::wstring new_sql = L"Items.id IN (SELECT itemid FROM props WHERE itemtypstrid = @node_item_type_id AND namestrid = @namestrid" + param_num_str;
-		if (crit.m_useLike)
+		if (crit.m_nameStringId == name_string_id) // searching by name
 		{
+			std::wstring new_sql = L"Items.id IN (SELECT InnerNodes.id FROM nodes InnerNodes JOIN strings NameStrings ON NameStrings.id = InnerNodes.name_string_id WHERE ";
+			if (crit.m_useLike)
+			{
+				sqlParams[L"@valstr" + param_num_str] = crit.m_valueString;
+				new_sql += L"NameStrings.val LIKE @valstr" + param_num_str;
+			}
+			else
+			{
+				sqlParams[L"@valstrid" + param_num_str] = strings::get_id(db, crit.m_valueString);
+				new_sql += L"NameStrings.id = @valstrid" + param_num_str;
+			}
+			new_sql += L')';
+
+			where += new_sql;
+		}
+		else if (crit.m_nameStringId == payload_string_id) // search by payload
+		{
+			std::wstring new_sql;
 			sqlParams[L"@valstr" + param_num_str] = crit.m_valueString;
-			new_sql += L" AND valstrid IN (SELECT id FROM strings WHERE val LIKE @valstr" + param_num_str + L')';
+			if (crit.m_useLike)
+				new_sql += L"payload LIKE @valstr" + param_num_str;
+			else
+				new_sql += L"payload = @valstr" + param_num_str;
+			where += new_sql;
+		}
+		else if (crit.m_nameStringId == path_string_id) // search within a parent node
+		{
+			auto child_like_opt = nodes::get_path_to_parent_like(db, crit.m_valueString);
+			if (child_like_opt.has_value())
+			{
+				sqlParams[L"@valstr" + param_num_str] = child_like_opt.value();
+				where += L"Items.parents LIKE @valstr" + param_num_str;
+			}
+			else
+				where += L"1 = 0"; // no path, no results
 		}
 		else
 		{
-			sqlParams[L"@valstrid" + param_num_str] = strings::get_id(db, crit.m_valueString);
-			new_sql += L" AND valstrid = @valstrid" + param_num_str;
-		}
-		new_sql += L')';
+			sqlParams[L"@namestrid" + param_num_str] = crit.m_nameStringId;
 
-		sql += new_sql;
+			std::wstring new_sql = L"Items.id IN (SELECT itemid FROM props WHERE itemtypstrid = @node_item_type_id AND namestrid = @namestrid" + param_num_str;
+			if (crit.m_useLike)
+			{
+				sqlParams[L"@valstr" + param_num_str] = crit.m_valueString;
+				new_sql += L" AND valstrid IN (SELECT id FROM strings WHERE val LIKE @valstr" + param_num_str + L')';
+			}
+			else
+			{
+				sqlParams[L"@valstrid" + param_num_str] = strings::get_id(db, crit.m_valueString);
+				new_sql += L" AND valstrid = @valstrid" + param_num_str;
+			}
+			new_sql += L')';
+
+			where += new_sql;
+		}
 	}
+	sql += L"WHERE " + where;
 
 	if (!findParams.m_pQuery->m_orderBy.empty())
 	{
@@ -73,12 +120,22 @@ std::vector<node> search::find_nodes(db& db, const search_query& query)
 	find_params.m_itemTable = L"nodes";
 	find_params.m_columns = L"Items.id, parent_id, name_string_id, type_string_id";
 	find_params.m_pQuery = &query;
+	if (query.m_includePayload)
+		find_params.m_columns += L", payload";
 
 	paramap sql_params;
 	std::wstring sql = get_find_sql(db, find_params, sql_params);
 	auto reader = db.execReader(sql, sql_params);
-	while (reader->read())
-		output.emplace_back(reader->getInt64(0), reader->getInt64(1), reader->getInt64(2), reader->getInt64(3));
+	if (query.m_includePayload)
+	{
+		while (reader->read())
+			output.emplace_back(reader->getInt64(0), reader->getInt64(1), reader->getInt64(2), reader->getInt64(3), reader->getString(4));
+	}
+	else
+	{
+		while (reader->read())
+			output.emplace_back(reader->getInt64(0), reader->getInt64(1), reader->getInt64(2), reader->getInt64(3));
+	}
 	return output;
 }
 
@@ -93,12 +150,22 @@ std::vector<link> search::find_links(db& db, const search_query& query)
 	find_params.m_itemTable = L"links";
 	find_params.m_columns = L"Items.id, from_node_id, to_node_id, type_string_id";
 	find_params.m_pQuery = &query;
+	if (query.m_includePayload)
+		find_params.m_columns += L", payload";
 
 	paramap sql_params;
 	std::wstring sql = get_find_sql(db, find_params, sql_params);
 	auto reader = db.execReader(sql, sql_params);
-	while (reader->read())
-		output.emplace_back(reader->getInt64(0), reader->getInt64(1), reader->getInt64(2), reader->getInt64(3));
+	if (query.m_includePayload)
+	{
+		while (reader->read())
+			output.emplace_back(reader->getInt64(0), reader->getInt64(1), reader->getInt64(2), reader->getInt64(3), reader->getString(4));
+	}
+	else
+	{
+		while (reader->read())
+			output.emplace_back(reader->getInt64(0), reader->getInt64(1), reader->getInt64(2), reader->getInt64(3));
+	}
 	return output;
 }
  
