@@ -15,7 +15,7 @@ namespace nldb
 			setup_nldb(db);
 
 			int64_t item_type_id = strings::get_id(db, L"node");
-			auto node = nodes::get_node(db, 0).value();
+			auto node = nodes::get(db, 0).value();
 			int64_t item_id = node.m_id;
 
 			std::wstring prop_str;

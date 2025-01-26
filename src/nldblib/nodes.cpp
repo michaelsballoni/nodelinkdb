@@ -75,7 +75,7 @@ static std::vector<int64_t> get_parents_node_ids(db& db, int64_t nodeId)
 		return str_to_ids(parents_ids_str_opt.value(), '/');
 }
 
-node nodes::create(db& db, int64_t parentNodeId, int64_t nameStringId, int64_t typeStringId, const std::wstring& payload) 
+node nodes::create(db& db, int64_t parentNodeId, int64_t nameStringId, int64_t typeStringId, const std::optional<std::wstring>& payload)
 {
 	auto parent_node_ids = get_parents_node_ids(db, parentNodeId);
 	if (parentNodeId != 0)
@@ -84,7 +84,7 @@ node nodes::create(db& db, int64_t parentNodeId, int64_t nameStringId, int64_t t
 	std::wstring parents_str = ids_to_parents_str(parent_node_ids);
 
 	int64_t new_id = -1;
-	if (parents_str.empty() && payload.empty())
+	if (parents_str.empty() && !payload.has_value())
 	{
 		new_id =
 			db.execInsert
@@ -98,7 +98,7 @@ node nodes::create(db& db, int64_t parentNodeId, int64_t nameStringId, int64_t t
 				}
 			);
 	}
-	else if (payload.empty())
+	else if (!payload.has_value())
 	{
 		new_id =
 			db.execInsert
@@ -124,7 +124,7 @@ node nodes::create(db& db, int64_t parentNodeId, int64_t nameStringId, int64_t t
 					{ L"@parentNodeId", parentNodeId },
 					{ L"@nameStringId", nameStringId },
 					{ L"@typeStringId", typeStringId },
-					{ L"@payload", payload }
+					{ L"@payload", payload.value() }
 				}
 			);
 	}
@@ -140,11 +140,11 @@ node nodes::create(db& db, int64_t parentNodeId, int64_t nameStringId, int64_t t
 					{ L"@nameStringId", nameStringId },
 					{ L"@typeStringId", typeStringId },
 					{ L"@parents", parents_str },
-					{ L"@payload", payload }
+					{ L"@payload", payload.value() }
 				}
 			);
 	}
-	return node(new_id, parentNodeId, nameStringId, typeStringId, &payload);
+	return node(new_id, parentNodeId, nameStringId, typeStringId, payload);
 }
 
 // build LIKE path to node where it exists initially as we'll need to update its children
@@ -256,7 +256,7 @@ void nodes::remove(db& db, int64_t nodeId)
 		throw nldberr("nodes::remove: Node not removed: " + std::to_string(nodeId));
 }
 
-std::optional<node> nodes::get_node(db& db, int64_t nodeId) 
+std::optional<node> nodes::get(db& db, int64_t nodeId) 
 {
 	auto reader =
 		db.execReader
@@ -266,9 +266,8 @@ std::optional<node> nodes::get_node(db& db, int64_t nodeId)
 		);
 	if (!reader->read())
 		return std::nullopt;
-
-	std::wstring payload = reader->getString(3);
-	return node(nodeId, reader->getInt64(0), reader->getInt64(1), reader->getInt64(2), &payload);
+	else
+		return node(nodeId, reader->getInt64(0), reader->getInt64(1), reader->getInt64(2), reader->getString(3));
 }
 
 void nodes::rename(db& db, int64_t nodeId, int64_t newNameStringId)

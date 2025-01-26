@@ -38,11 +38,13 @@ void nldb::setup_nldb(db& db)
 		L"id INTEGER PRIMARY KEY, "
 		L"from_node_id INTEGER NOT NULL, "
 		L"to_node_id INTEGER NOT NULL, "
-		L"type_string_id INTEGER NOT NULL"
+		L"type_string_id INTEGER NOT NULL, "
+		L"payload STRING NOT NULL DEFAULT ''"
 		L")",
 		{});
 	db.execSql(L"CREATE UNIQUE INDEX link_from ON links (from_node_id, to_node_id, type_string_id)", {});
 	db.execSql(L"CREATE UNIQUE INDEX link_to ON links (to_node_id, from_node_id, type_string_id)", {});
+	db.execSql(L"CREATE INDEX link_payloads ON links (payload, id)", {});
 	db.execSql(L"INSERT INTO links (id, from_node_id, to_node_id, type_string_id) VALUES (0, 0, 0, 0)", {});
 
 	// props

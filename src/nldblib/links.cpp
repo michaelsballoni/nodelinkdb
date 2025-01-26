@@ -4,18 +4,36 @@
 
 using namespace nldb;
 
-link links::create(db& db, int64_t fromNodeId, int64_t toNodeId, int64_t typeStringId)
+link links::create(db& db, int64_t fromNodeId, int64_t toNodeId, int64_t typeStringId, const std::optional<std::wstring>& payload)
 {
-	int64_t new_id =
-		db.execInsert
-		(
-			L"INSERT INTO links (from_node_id, to_node_id, type_string_id) VALUES (@fromNodeId, @toNodeId, @typeStringId)",
-			{
-				{ L"@fromNodeId", fromNodeId },
-				{ L"@toNodeId", toNodeId },
-				{ L"@typeStringId", typeStringId },
-			}
+	int64_t new_id = -1;
+	if (payload.has_value())
+	{
+		new_id = 
+			db.execInsert
+			(
+				L"INSERT INTO links (from_node_id, to_node_id, type_string_id, payload) VALUES (@fromNodeId, @toNodeId, @typeStringId, @payload)",
+				{
+					{ L"@fromNodeId", fromNodeId },
+					{ L"@toNodeId", toNodeId },
+					{ L"@typeStringId", typeStringId },
+					{ L"@payload", payload.value()},
+				}
 			);
+	}
+	else
+	{
+		new_id =
+			db.execInsert
+			(
+				L"INSERT INTO links (from_node_id, to_node_id, type_string_id) VALUES (@fromNodeId, @toNodeId, @typeStringId)",
+				{
+					{ L"@fromNodeId", fromNodeId },
+					{ L"@toNodeId", toNodeId },
+					{ L"@typeStringId", typeStringId },
+				}
+			);
+	}
 	return link(new_id, fromNodeId, toNodeId, typeStringId);
 }
 
@@ -24,13 +42,13 @@ std::optional<link> links::get_link(db& db, int64_t linkId)
 	auto reader =
 		db.execReader
 		(
-			L"SELECT id, from_node_id, to_node_id, type_string_id FROM links WHERE id = @linkId",
+			L"SELECT id, from_node_id, to_node_id, type_string_id, payload FROM links WHERE id = @linkId",
 			{ { L"@linkId", linkId } }
 		);
 	if (!reader->read())
 		return std::nullopt;
 	else
-		return link(reader->getInt64(0), reader->getInt64(1), reader->getInt64(2), reader->getInt64(3));
+		return link(reader->getInt64(0), reader->getInt64(1), reader->getInt64(2), reader->getInt64(3), reader->getString(4));
 }
 
 std::vector<link> links::get_out_links(db& db, int64_t fromNodeId)

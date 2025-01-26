@@ -1,18 +1,16 @@
-process feedback from rod, see how he plans to use this
-
-links
-=====
-add payload
-
 search
 ======
 add parent node to look under
 add name search
 add payload search
+optionally pull payload out
+
+process feedback from rod, see how he plans to use this
 
 sample
 ======
-cd: change absolute if starts with /, otherwise relative to current
+current node: null node
+cd: absolute path
 dir: list sub-dirs and files of the given node
 move
 ren
@@ -29,12 +27,6 @@ dellinkprop from to name
 tell: dump everything about the current node: path, props, in-links, out-links, link props
 
 search: name value -> list matching paths efficiently
-
-===
-
-cache response to nodes::get_parent_node(nodeid)
-	should speed up get_path(node)
-	flush cache entry if a node is moved or deleted
 
 ===
 
