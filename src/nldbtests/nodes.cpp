@@ -19,11 +19,11 @@ namespace nldb
 	public:
 		TEST_METHOD(TestNodes)
 		{
+			// set up shop from scratch
 			db db("tests.nodes.db");
 			setup_nldb(db);
 
-			auto null_node_opt = nodes::get_parent(db, 0);
-			Assert::IsTrue(!null_node_opt.has_value());
+			// check out the null node
 			node null_node = nodes::get_node(db, 0).value();
 			Assert::AreEqual(int64_t(0), null_node.m_id);
 			Assert::AreEqual(int64_t(0), null_node.m_parentId);
@@ -32,6 +32,7 @@ namespace nldb
 			Assert::IsTrue(nodes::get_children(db, 0).empty());
 			Assert::IsTrue(nodes::get_parents(db, 0).empty());
 
+			// create our first node
 			node node1 = nodes::create(db, 0, strings::get_id(db, L"foo"), strings::get_id(db, L"bar"));
 			Assert::AreNotEqual(int64_t(0), node1.m_id);
 			Assert::AreEqual(int64_t(0), node1.m_parentId);
@@ -42,6 +43,7 @@ namespace nldb
 			Assert::AreEqual(1U, nodes::get_children(db, 0).size());
 			Assert::AreEqual(node1.m_id, nodes::get_children(db, 0)[0].m_id);
 
+			// create our second node
 			node node2 = nodes::create(db, 0, strings::get_id(db, L"blet"), strings::get_id(db, L"monkey"));
 			Assert::AreNotEqual(int64_t(0), node2.m_id);
 			Assert::AreNotEqual(node1.m_id, node2.m_id);
@@ -54,20 +56,20 @@ namespace nldb
 			Assert::IsTrue(has(nodes::get_children(db, 0), node1.m_id));
 			Assert::IsTrue(has(nodes::get_children(db, 0), node2.m_id));
 
+			// move the second into the first
 			nodes::move(db, node2.m_id, node1.m_id);
 			Assert::AreEqual(1U, nodes::get_children(db, node1.m_id).size());
 			Assert::AreEqual(node2.m_id, nodes::get_children(db, node1.m_id)[0].m_id);
 			Assert::IsTrue(nodes::get_children(db, node2.m_id).empty());
 
-			auto node2_opt = nodes::get_node(db, node2.m_id);
-			if (!node2_opt.has_value())
-				Assert::Fail();
-			node node2b = node2_opt.value();
+			// get the second again
+			node node2b = nodes::get_node(db, node2.m_id).value();
 			Assert::AreEqual(node2.m_id, node2b.m_id);
 			Assert::AreEqual(node2.m_nameStringId, node2b.m_nameStringId);
 			Assert::AreEqual(node2.m_typeStringId, node2b.m_typeStringId);
 			Assert::AreEqual(node1.m_id, node2b.m_parentId);
 
+			// work with paths
 			Assert::IsTrue(nodes::get_path_str(db, node()).empty());
 
 			std::wstring node1_path = nodes::get_path_str(db, node1);
@@ -87,6 +89,19 @@ namespace nldb
 			Assert::IsTrue(node1 == node2_path_nodes[0]);
 			Assert::IsTrue(node2b == node2_path_nodes[1]);
 
+			// set a payload
+			nodes::set_payload(db, node2.m_id, L"foobletbarmonkey");
+			Assert::AreEqual(std::wstring(L"foobletbarmonkey"), nodes::get_node(db, node2.m_id).value().m_payload.value());
+
+			nodes::set_payload(db, node2.m_id, L"");
+			Assert::AreEqual(std::wstring(L""), nodes::get_node(db, node2.m_id).value().m_payload.value());
+
+			/// 
+			int64_t new_name_string_id = strings::get_id(db, L"new name hot hot hot");
+			nodes::rename(db, node2b.m_id, new_name_string_id);
+			Assert::AreEqual(node2b.m_id, nodes::get_node_in_parent(db, node2b.m_parentId, new_name_string_id).value().m_id);
+
+			// delete our root
 			nodes::remove(db, node1.m_id);
 			Assert::IsTrue(!nodes::get_node(db, node2.m_id).has_value());
 			Assert::IsTrue(!nodes::get_node(db, node1.m_id).has_value());

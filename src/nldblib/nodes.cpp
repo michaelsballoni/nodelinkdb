@@ -144,7 +144,7 @@ node nodes::create(db& db, int64_t parentNodeId, int64_t nameStringId, int64_t t
 				}
 			);
 	}
-	return node(new_id, parentNodeId, nameStringId, typeStringId);
+	return node(new_id, parentNodeId, nameStringId, typeStringId, &payload);
 }
 
 // build LIKE path to node where it exists initially as we'll need to update its children
@@ -261,13 +261,44 @@ std::optional<node> nodes::get_node(db& db, int64_t nodeId)
 	auto reader =
 		db.execReader
 		(
-			L"SELECT parent_id, name_string_id, type_string_id FROM nodes WHERE id = @nodeId",
+			L"SELECT parent_id, name_string_id, type_string_id, payload FROM nodes WHERE id = @nodeId",
 			{ { L"@nodeId", nodeId } }
 		);
 	if (!reader->read())
 		return std::nullopt;
-	else
-		return node(nodeId, reader->getInt64(0), reader->getInt64(1), reader->getInt64(2));
+
+	std::wstring payload = reader->getString(3);
+	return node(nodeId, reader->getInt64(0), reader->getInt64(1), reader->getInt64(2), &payload);
+}
+
+void nodes::rename(db& db, int64_t nodeId, int64_t newNameStringId)
+{
+	int affected =
+		db.execSql
+		(
+			L"UPDATE nodes SET name_string_id = @newNameStringId WHERE id = @nodeId",
+			{
+				{ L"@nodeId", nodeId },
+				{ L"@newNameStringId", newNameStringId }
+			}
+		);
+	if (affected != 1)
+		throw nldberr("nodes::rename: Node not renamed: " + std::to_string(nodeId));
+}
+
+void nodes::set_payload(db& db, int64_t nodeId, const std::wstring& payload)
+{
+	int affected =
+		db.execSql
+		(
+			L"UPDATE nodes SET payload = @payload WHERE id = @nodeId",
+			{
+				{ L"@nodeId", nodeId },
+				{ L"@payload", payload }
+			}
+		);
+	if (affected != 1)
+		throw nldberr("nodes::set_payload: Node not updated: " + std::to_string(nodeId));
 }
 
 std::optional<node> nodes::get_node_in_parent(db& db, int64_t parentNodeId, int64_t nameStringId) 
@@ -275,14 +306,9 @@ std::optional<node> nodes::get_node_in_parent(db& db, int64_t parentNodeId, int6
 	auto reader =
 		db.execReader
 		(
-			L"SELECT id, type_string_id " 
-			L"FROM nodes " 
-			L"WHERE parent_id = @parentNodeId " 
-			L"AND name_string_id = @nameStringId", 
-			{
-				{ L"@parentNodeId", parentNodeId, },
-				{ L"@nameStringId", nameStringId }
-			}
+			L"SELECT id, type_string_id FROM nodes " 
+			L"WHERE parent_id = @parentNodeId AND name_string_id = @nameStringId", 
+			{ { L"@parentNodeId", parentNodeId, }, { L"@nameStringId", nameStringId } }
 		);
 	if (!reader->read())
 		return std::nullopt;
@@ -475,7 +501,6 @@ std::vector<node> nodes::get_path_nodes(db& db, const std::wstring& path)
 			throw nldberr("nodes::get_path_nodes: Node not found: " + toNarrowStr(part));
 
 		output.emplace_back(node_opt.value());
-
 		cur_node_id = node_opt.value().m_id;
 	}
 

@@ -1,14 +1,8 @@
 process feedback from rod, see how he plans to use this
 
-test
-====
-nodes::remove(nodeId)
-
-api
-===
-nodes::copy(nodeId, newParentId, newNameId)
-nodes:rename(nodeId, newNameId)
-add access to payload
+links
+=====
+add payload
 
 search
 ======
@@ -16,14 +10,11 @@ add parent node to look under
 add name search
 add payload search
 
-
 sample
 ======
 cd: change absolute if starts with /, otherwise relative to current
 dir: list sub-dirs and files of the given node
-
 move
-copy
 ren
 
 setnodeprop path name value
@@ -49,3 +40,6 @@ cache response to nodes::get_parent_node(nodeid)
 
 Write README.MD file describing the library, the tests, and the nldb.exe sample app:
 how to build it, how to consume it, how to maintain it
+
+LATER:
+nodes::copy(nodeId, newParentId, newNameId)
