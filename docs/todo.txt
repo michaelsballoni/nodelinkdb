@@ -1,14 +1,19 @@
 get feedback from rod, see if and how he plans to use this going forward
 
-sample
-======
-list available commands at cmd startup, and if not enough args give usage
-remove
+api
+===
+validate that only valid strings become node names, no /'s allowed!
+nodes::copy(nodeId, newParentId, newNameId)
+
+sample exe
+==========
+list available commands at startup if [/-]%[?|help], and if not enough args give usage
+remove: debug
 move
 rename
 
-setnodeprop path name value
-delnodeprop path name
+setnodeprop name value
+delnodeprop name
 setnodepayload payload
 
 link topath linktype
@@ -18,16 +23,23 @@ setlinkprop topath name value
 dellinkprop topath name
 selinkpayload topath payload
 
-tell: dump everything about the current node: path, node props, node payload, in-links, out-links, link props, link payload
+tell: dump everything about the current node
+path
+type
+node props
+node payload
+in-links
+	type
+	props
+	payload
+out-links
+	...
 
 search: name value -> list matching paths efficiently
-
-validate that only valid strings become node names, no /'s allowed!
 
 ===
 
 Write README.MD file describing the library, the tests, and the nldb.exe sample app:
 how to build it, how to consume it, how to maintain it
 
-LATER:
-nodes::copy(nodeId, newParentId, newNameId)
+host nodelinkdb.io and write index.html with link to github
