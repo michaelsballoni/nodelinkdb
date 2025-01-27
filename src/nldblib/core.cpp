@@ -155,7 +155,7 @@ std::vector<std::wstring> nldb::extractParamNames(const std::wstring& sql)
         {
             std::wstring paramName = L"@" + sb;
             if (std::find(paramNames.begin(), paramNames.end(), paramName) == paramNames.end())
-                paramNames.push_back(paramName);
+                paramNames.emplace_back(paramName);
             sb.clear();
         }
         lookFrom = idx;
@@ -165,7 +165,7 @@ std::vector<std::wstring> nldb::extractParamNames(const std::wstring& sql)
     {
         std::wstring paramName = L"@" + sb;
         if (std::find(paramNames.begin(), paramNames.end(), paramName) == paramNames.end())
-            paramNames.push_back(paramName);
+            paramNames.emplace_back(paramName);
         sb.clear();
     }
 

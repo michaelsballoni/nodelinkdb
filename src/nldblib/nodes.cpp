@@ -272,6 +272,18 @@ std::optional<node> nodes::get(db& db, int64_t nodeId)
 
 void nodes::rename(db& db, int64_t nodeId, int64_t newNameStringId)
 {
+	if (nodeId == 0)
+		throw nldberr("nodes::rename: Cannot rename null node");
+
+	auto parent_opt = get_parent(db, nodeId);
+	if (!parent_opt.has_value())
+		throw nldberr("nodes::rename: Parent not found: " + std::to_string(nodeId));
+
+	int64_t parent_id = parent_opt.value().m_id;
+	auto existing_node_opt = get_node_in_parent(db, parent_id, newNameStringId);
+	if (existing_node_opt.has_value())
+		throw nldberr("nodes::rename: Node with new name already exists: " + std::to_string(nodeId));
+
 	int affected =
 		db.execSql
 		(
@@ -370,6 +382,26 @@ std::vector<node> nodes::get_parents(db& db, int64_t nodeId)
 
 std::vector<node> nodes::get_children(db& db, int64_t nodeId)
 {
+	std::vector<node> child_nodes;
+	auto reader = 
+		db.execReader
+		(
+			L"SELECT id, parent_id, name_string_id, type_string_id FROM nodes WHERE id <> 0 AND parent_id = @nodeId", 
+			{ { L"@nodeId", nodeId } }
+		);
+	while (reader->read())
+		child_nodes.emplace_back
+		(
+			reader->getInt64(0),
+			reader->getInt64(1),
+			reader->getInt64(2),
+			reader->getInt64(3)
+		);
+	return child_nodes;
+}
+
+std::vector<node> nodes::get_all_children(db& db, int64_t nodeId)
+{
 	// handle null parent, the parent of all children
 	if (nodeId == 0)
 	{
@@ -390,7 +422,7 @@ std::vector<node> nodes::get_children(db& db, int64_t nodeId)
 	auto original_node_parents_opt =
 		db.execScalarString(L"SELECT parents FROM nodes WHERE id = @id", { { L"@id", nodeId } });
 	if (!original_node_parents_opt.has_value())
-		throw nldberr("nodes::get_children: Node not found: " + std::to_string(nodeId));
+		throw nldberr("nodes::get_all_children: Node not found: " + std::to_string(nodeId));
 
 	std::wstring original_node_parents_str = original_node_parents_opt.value();
 
@@ -428,7 +460,7 @@ std::vector<node> nodes::get_path(db& db, const node& cur)
 	do
 	{
 		if (cur_node.m_id != 0)
-			output.push_back(cur_node);
+			output.emplace_back(cur_node);
 
 		auto new_node_opt = get_parent(db, cur_node.m_id);
 		if (!new_node_opt.has_value())
@@ -476,7 +508,7 @@ std::optional<std::vector<node>> nodes::get_path_nodes(db& db, const std::wstrin
 		{
 			if (!builder.empty())
 			{
-				splits.push_back(builder);
+				splits.emplace_back(builder);
 				builder.clear();
 			}
 		}
@@ -484,10 +516,10 @@ std::optional<std::vector<node>> nodes::get_path_nodes(db& db, const std::wstrin
 			builder += c;
 	}
 	if (!builder.empty())
-		splits.push_back(builder);
+		splits.emplace_back(builder);
 
 	if (splits.empty())
-		return { };
+		return std::nullopt;
 	else
 		output.reserve(splits.size());
 

@@ -2,6 +2,7 @@
 
 #include "includes.h"
 
+#include "cmd.h"
 #include "links.h"
 #include "loader.h"
 #include "nodes.h"

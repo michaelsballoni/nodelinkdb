@@ -5,4 +5,5 @@
 
 #include "stopwatch.h"
 
+#include <iostream>
 #include <stdio.h>

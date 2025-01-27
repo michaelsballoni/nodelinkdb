@@ -31,7 +31,7 @@ namespace nldb
             if (contains(key))
                 throw std::runtime_error("key already exists");
             m_map.insert({ key, val });
-            m_vec.push_back({ key, val });
+            m_vec.emplace_back({ key, val });
         }
 
         bool tryGet(const K& key, V& val) const

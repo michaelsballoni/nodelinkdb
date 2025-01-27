@@ -1,6 +1,5 @@
 #include "pch.h"
 
-namespace fs = std::filesystem;
 using namespace nldb;
 
 int wmain(int argc, wchar_t* argv[]) 
@@ -16,6 +15,7 @@ int wmain(int argc, wchar_t* argv[])
 			printf("string-val \"string ID to get the value for\"\n");
 			printf("string-vals \"one string ID to get the value of\" \"another string ID to get the value of\"\n");
 			printf("load \"path to directory to load into the DB\"\n");
+			printf("cmd\n");
 			return 0;
 		}
 
@@ -86,6 +86,57 @@ int wmain(int argc, wchar_t* argv[])
 			sw.record();
 			sw.print();
 
+			return 0;
+		}
+
+		if (cmd == L"cmd")
+		{
+			nldb::cmd cmd_obj(db);
+			std::wstring cur_path;
+			std::wstring cmd_str;
+			while (true)
+			{
+				cur_path = cmd_obj.get_cur_path();
+				printf("%S> ", cur_path.c_str());
+
+				std::getline(std::wcin, cmd_str);
+				if (cmd_str.empty())
+					continue;
+				else if (cmd_str == L"quit" || cmd_str == L"exit")
+					break;
+
+				try
+				{
+					std::wstring after_party;
+					size_t space = cmd_str.find(' ');
+					if (space != std::wstring::npos)
+					{
+						after_party = cmd_str.substr(space + 1);
+						cmd_str = cmd_str.substr(0, space);
+					}
+
+					stopwatch sw("cmd");
+					if (cmd_str == L"cd")
+						cmd_obj.cd(after_party);
+					else if (cmd_str == L"load")
+						cmd_obj.load(after_party);
+					else if (cmd_str == L"dir")
+						printf("%S\n", join(cmd_obj.dir(), L"\n").c_str());
+					else if (cmd_str == L"remove")
+						cmd_obj.remove();
+					else if (cmd_str == L"rename")
+						cmd_obj.rename(after_party);
+					else
+						throw nldberr("Unknown command: " + toNarrowStr(cmd_str));
+					sw.record();
+					sw.print();
+				}
+				catch (const std::exception& cmdExp)
+				{
+					printf("ERROR: %s\n", cmdExp.what());
+				}
+			}
+			
 			return 0;
 		}
 

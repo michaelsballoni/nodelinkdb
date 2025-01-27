@@ -2,24 +2,27 @@ get feedback from rod, see if and how he plans to use this going forward
 
 sample
 ======
-current node: null node
-cd: absolute path
-dir: list sub-dirs and files of the given node
+list available commands at cmd startup, and if not enough args give usage
+remove
 move
-ren
+rename
 
 setnodeprop path name value
 delnodeprop path name
+setnodepayload payload
 
-link fromnodepath tonodepath linktype
-unlink fromnodepath tonodepath linktype
+link topath linktype
+unlink topath linktype
 
-setlinkprop from to name value
-dellinkprop from to name
+setlinkprop topath name value
+dellinkprop topath name
+selinkpayload topath payload
 
-tell: dump everything about the current node: path, props, in-links, out-links, link props
+tell: dump everything about the current node: path, node props, node payload, in-links, out-links, link props, link payload
 
 search: name value -> list matching paths efficiently
+
+validate that only valid strings become node names, no /'s allowed!
 
 ===
 
