@@ -4,10 +4,10 @@
 void nldb::setup_nldb(db& db)
 {
 	// strings
-	nldb::strings::flush_caches();
 	db.execSql(L"DROP TABLE IF EXISTS strings", {});
 	db.execSql(L"CREATE TABLE strings (id INTEGER PRIMARY KEY, val STRING UNIQUE NOT NULL)", {});
 	db.execSql(L"INSERT INTO strings (id, val) VALUES (0, '')", {});
+	nldb::strings::flush_caches();
 
 	// nodes
 	db.execSql(L"DROP TABLE IF EXISTS nodes", {});

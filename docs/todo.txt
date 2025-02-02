@@ -1,8 +1,5 @@
-get feedback from rod, see if and how he plans to use this going forward
-
 api
 ===
-validate that only valid strings become node names, no /'s allowed!
 nodes::copy(nodeId, newParentId, newNameId)
 
 sample exe

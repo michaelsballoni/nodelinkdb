@@ -77,6 +77,9 @@ static std::vector<int64_t> get_parents_node_ids(db& db, int64_t nodeId)
 
 node nodes::create(db& db, int64_t parentNodeId, int64_t nameStringId, int64_t typeStringId, const std::optional<std::wstring>& payload)
 {
+	if (strings::get_val(db, nameStringId).find('/') != std::wstring::npos)
+		throw nldberr("nodes::create: Invalid node name, cannot contain /");
+
 	auto parent_node_ids = get_parents_node_ids(db, parentNodeId);
 	if (parentNodeId != 0)
 		parent_node_ids.push_back(parentNodeId);

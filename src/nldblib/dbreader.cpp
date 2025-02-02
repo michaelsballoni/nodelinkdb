@@ -32,9 +32,9 @@ namespace nldb
         switch (columnType)
         {
         case SQLITE_INTEGER:
-            return num2str(static_cast<double>(sqlite3_column_int64(m_stmt, idx)));
+            return std::to_wstring(sqlite3_column_int64(m_stmt, idx));
         case SQLITE_FLOAT:
-            return num2str(sqlite3_column_double(m_stmt, idx));
+            return std::to_wstring(sqlite3_column_double(m_stmt, idx));
         case SQLITE_NULL:
             return L"null";
         case SQLITE_BLOB:

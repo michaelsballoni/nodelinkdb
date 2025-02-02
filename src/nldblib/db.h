@@ -36,22 +36,18 @@ namespace nldb
 
 		std::unique_ptr<dbreader> execReader(const std::wstring& sql, const paramap& params)
 		{
-			std::wstring fullSql = applyParams(sql, params);
-			auto reader = std::make_unique<dbreader>(m_db, fullSql);
-			return reader;
+			return std::make_unique<dbreader>(m_db, applyParams(sql, params));
 		}
 
 		int execSql(const std::wstring& sql, const paramap& params)
 		{
-			int rowCount = 0;
+			int row_count = 0;
 			{
 				auto reader = execReader(sql, params);
 				while (reader->read())
-				{
-					++rowCount;
-				}
+					++row_count;
 			}
-			return rowCount > 0 ? rowCount : execScalarInt32(L"SELECT changes()", paramap()).value();
+			return row_count > 0 ? row_count : execScalarInt32(L"SELECT changes()", paramap()).value();
 		}
 
 		std::optional<int> execScalarInt32(const std::wstring& sql, const paramap& params)
@@ -89,10 +85,10 @@ namespace nldb
 
 		std::wstring applyParams(const std::wstring& sql, const paramap& params)
 		{
-			std::wstring retVal = sql;
+			std::wstring ret_val = sql;
 			for (const auto& it : params)
-				replace(retVal, it.first, it.second.toSqlLiteral());
-			return retVal;
+				replace(ret_val, it.first, it.second.toSqlLiteral());
+			return ret_val;
 		}
 	};
 }

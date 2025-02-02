@@ -6,7 +6,7 @@
 
 using namespace nldb;
 
-void cmd::load(const std::wstring& dirPath)
+void cmd::mount(const std::wstring& dirPath)
 {
 	loader loader(m_db);
 	loader.load_directory(dirPath, m_cur);
@@ -55,6 +55,11 @@ std::vector<std::wstring> cmd::dir()
 		paths.emplace_back(nodes::get_path_str(m_db, child));
 	std::sort(paths.begin(), paths.end());
 	return paths;
+}
+
+void cmd::mknode(const std::wstring& newNodeName)
+{
+	nodes::create(m_db, m_cur.m_id, strings::get_id(m_db, newNodeName));
 }
 
 void cmd::remove()

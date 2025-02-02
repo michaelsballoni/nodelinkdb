@@ -1,16 +1,9 @@
 #include "pch.h"
 #include "CppUnitTest.h"
 #include "nldb.h"
+#include "testutils.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
-
-bool has(const std::vector<nldb::node>& vec, int64_t id)
-{
-	for (size_t i = 0; i < vec.size(); ++i)
-		if (vec[i].m_id == id)
-			return true;
-	return false;
-}
 
 namespace nldb
 {
@@ -32,6 +25,13 @@ namespace nldb
 			Assert::IsTrue(nodes::get_children(db, 0).empty());
 			Assert::IsTrue(nodes::get_all_children(db, 0).empty());
 			Assert::IsTrue(nodes::get_parents(db, 0).empty());
+
+			try
+			{
+				node node_bad = nodes::create(db, 0, strings::get_id(db, L"foo / bar")); // "/" not allowed in paths
+				Assert::Fail();
+			}
+			catch (const nldberr&) {}
 
 			// create our first node
 			node node1 = nodes::create(db, 0, strings::get_id(db, L"foo"), strings::get_id(db, L"bar"));

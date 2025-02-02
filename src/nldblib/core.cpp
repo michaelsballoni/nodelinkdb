@@ -15,13 +15,6 @@ std::string nldb::nldberr::getExceptionMsg(int rc, sqlite3* db)
     return retVal;
 }
 
-std::wstring nldb::num2str(double num)
-{
-    std::wstringstream ss;
-    ss << num;
-    return ss.str();
-}
-
 void nldb::replace(std::wstring& str, const std::wstring& from, const std::wstring& to)
 {
     size_t pos;
@@ -35,83 +28,14 @@ void nldb::replace(std::wstring& str, const std::wstring& from, const std::wstri
     }
 }
 
-bool nldb::isWord(const std::wstring& str)
-{
-    if (str.empty())
-        return false;
-
-    if (!std::isalpha(str[0]))
-        return false;
-
-    for (wchar_t c : str)
-    {
-        if (!std::isalnum(c) && c != '_' && c != '-')
-            return false;
-    }
-
-    return true;
-}
-
 std::wstring nldb::toLower(const std::wstring& str)
 {
-    std::wstring retVal;
-    for (wchar_t c : str)
-        retVal += towlower(c);
-    return retVal;
-}
+	std::wstring ret_val;
+	ret_val.reserve(str.length());
+	for (wchar_t c : str)
+		ret_val += towlower(c);
+	return ret_val;
 
-bool nldb::isNameReserved(const std::wstring& name)
-{
-    static std::unordered_set<std::wstring> names
-    {
-        L"select",
-        L"from",
-        L"where",
-        L"order",
-        L"limit",
-        L"value",
-        L"id",
-        L"count",
-        L"created",
-        L"lastmodified",
-        L"rank"
-    };
-    return names.find(toLower(name)) != names.end();
-}
-
-bool nldb::isValidOp(const std::wstring& op)
-{
-    static std::unordered_set<std::wstring> ops
-    {
-        L"=",
-        L"==",
-        L"!=",
-        L"<>",
-        L">",
-        L">=",
-        L"!>",
-        L"<",
-        L"<=",
-        L"!<",
-        L"matches",
-        L"like"
-    };
-    return ops.find(toLower(op)) != ops.end();
-}
-
-std::wstring nldb::cleanseName(const std::wstring& name)
-{
-    std::wstring clean;
-    for (auto c : name)
-    {
-        if (iswalnum(c))
-            clean += c;
-    }
-
-    if (clean.empty())
-        clean = L"a";
-
-    return clean;
 }
 
 std::wstring nldb::join(const std::vector<std::wstring>& strs, const wchar_t* seperator)

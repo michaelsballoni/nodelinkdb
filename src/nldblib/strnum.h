@@ -38,10 +38,10 @@ namespace nldb
         {
             if (m_isStr)
             {
-                std::wstring retVal = m_str; // replace modifies param in place
-                replace(retVal, L"\'", L"\'\'");
-                retVal = L"'" + retVal + L"'";
-                return retVal;
+                std::wstring ret_val = m_str; // replace modifies param in place
+                replace(ret_val, L"\'", L"\'\'");
+                ret_val = L"'" + ret_val + L"'";
+                return ret_val;
             }
             else
             {

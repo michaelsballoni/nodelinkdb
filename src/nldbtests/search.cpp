@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "CppUnitTest.h"
 #include "nldb.h"
+#include "testutils.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -183,9 +184,8 @@ namespace nldb
 			//
 			// SEARCH BY PATH
 			//
+			auto node2 = nodes::create(db, node1.m_id, strings::get_id(db, L"leafy"), 0);
 			{
-				auto node2 = nodes::create(db, node1.m_id, strings::get_id(db, L"leafy"), 0);
-
 				search_query search1({ search_criteria(strings::get_id(db, L"path"), L"/fred/nothing/ha ha") });
 				auto no_results = search::find_nodes(db, search1);
 				Assert::IsTrue(no_results.empty());
@@ -194,6 +194,31 @@ namespace nldb
 				auto with_results = search::find_nodes(db, search2);
 				Assert::AreEqual(1U, with_results.size());
 				Assert::IsTrue(with_results[0] == node2);
+			}
+
+			//
+			// SEARCH BY PARENT
+			//
+			{
+				auto node3 = nodes::create(db, node1.m_id, strings::get_id(db, L"leaf"), 0);
+				auto node4 = nodes::create(db, node3.m_id, strings::get_id(db, L"leafier"), 0);
+
+				search_query search2({ search_criteria(strings::get_id(db, L"path"), L"/show") });
+				auto with_results = search::find_nodes(db, search2);
+				Assert::AreEqual(3U, with_results.size());
+				Assert::IsTrue(has(with_results, node2.m_id));
+				Assert::IsTrue(has(with_results, node3.m_id));
+				Assert::IsTrue(has(with_results, node4.m_id));
+
+				search_query search1({ search_criteria(strings::get_id(db, L"parent"), L"/fred/nothing/ha ha") });
+				auto no_results = search::find_nodes(db, search1);
+				Assert::IsTrue(no_results.empty());
+
+				search_query search3({ search_criteria(strings::get_id(db, L"parent"), L"/show") });
+				auto with_results2 = search::find_nodes(db, search3);
+				Assert::AreEqual(2U, with_results2.size());
+				Assert::IsTrue(has(with_results2, node2.m_id));
+				Assert::IsTrue(has(with_results2, node3.m_id));
 			}
 		}
 	};
