@@ -18,7 +18,7 @@ namespace nldb
 			int64_t node_item_type_id = strings::get_id(db, L"node");
 			int64_t link_item_type_id = strings::get_id(db, L"link");
 
-			auto node0 = nodes::get(db, 0).value();
+			auto node0 = nodes::get(db, 0);
 			int64_t item_id0 = node0.m_id;
 
 			auto node1 = nodes::create(db, item_id0, strings::get_id(db, L"show"), 0);

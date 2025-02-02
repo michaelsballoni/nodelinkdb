@@ -17,7 +17,7 @@ namespace nldb
 			setup_nldb(db);
 
 			// check out the null node
-			node null_node = nodes::get(db, 0).value();
+			node null_node = nodes::get(db, 0);
 			Assert::AreEqual(int64_t(0), null_node.m_id);
 			Assert::AreEqual(int64_t(0), null_node.m_parentId);
 			Assert::AreEqual(int64_t(0), null_node.m_nameStringId);
@@ -74,7 +74,7 @@ namespace nldb
 			Assert::IsTrue(nodes::get_all_children(db, node2.m_id).empty());
 
 			// get the second again
-			node node2b = nodes::get(db, node2.m_id).value();
+			node node2b = nodes::get(db, node2.m_id);
 			Assert::AreEqual(node2.m_id, node2b.m_id);
 			Assert::AreEqual(node2.m_nameStringId, node2b.m_nameStringId);
 			Assert::AreEqual(node2.m_typeStringId, node2b.m_typeStringId);
@@ -102,10 +102,10 @@ namespace nldb
 
 			// set a payload
 			nodes::set_payload(db, node2.m_id, L"foobletbarmonkey");
-			Assert::AreEqual(std::wstring(L"foobletbarmonkey"), nodes::get(db, node2.m_id).value().m_payload.value());
+			Assert::AreEqual(std::wstring(L"foobletbarmonkey"), nodes::get(db, node2.m_id).m_payload.value());
 
 			nodes::set_payload(db, node2.m_id, L"");
-			Assert::AreEqual(std::wstring(L""), nodes::get(db, node2.m_id).value().m_payload.value());
+			Assert::AreEqual(std::wstring(L""), nodes::get(db, node2.m_id).m_payload.value());
 
 			// rename the second node
 			int64_t new_name_string_id = strings::get_id(db, L"new name hot hot hot");
@@ -114,8 +114,39 @@ namespace nldb
 
 			// delete our root
 			nodes::remove(db, node1.m_id);
-			Assert::IsTrue(!nodes::get(db, node2.m_id).has_value());
-			Assert::IsTrue(!nodes::get(db, node1.m_id).has_value());
+			try
+			{
+				nodes::get(db, node1.m_id);
+				Assert::Fail();
+			}
+			catch (const nldberr&) {}
+			try
+			{
+				nodes::get(db, node2.m_id);
+				Assert::Fail();
+			}
+			catch (const nldberr&) {}
+		}
+
+		TEST_METHOD(TestCopy)
+		{
+			// set up shop from scratch
+			db db("tests.node-copy.db");
+			setup_nldb(db);
+
+			node node1 = nodes::create(db, 0, strings::get_id(db, L"foo"), strings::get_id(db, L"bar"));
+			node node2 = nodes::create(db, node1.m_id, strings::get_id(db, L"blet"), strings::get_id(db, L"monkey"));
+			node node3 = nodes::create(db, node1.m_id, strings::get_id(db, L"yet"), strings::get_id(db, L"another"));
+			node node4 = nodes::create(db, node3.m_id, strings::get_id(db, L"deeper"), strings::get_id(db, L"still"));
+			
+			node dest_node = nodes::create(db, 0, strings::get_id(db, L"dest"), strings::get_id(db, L"ination"));
+			
+			nodes::copy(db, node1.m_id, dest_node.m_id);
+
+			Assert::AreEqual(node1.m_nameStringId, nodes::get_path_nodes(db, L"/dest/foo/").value().back().m_nameStringId);
+			Assert::AreEqual(node2.m_nameStringId, nodes::get_path_nodes(db, L"/dest/foo/blet/").value().back().m_nameStringId);
+			Assert::AreEqual(node3.m_nameStringId, nodes::get_path_nodes(db, L"/dest/foo/yet/").value().back().m_nameStringId);
+			Assert::AreEqual(node4.m_nameStringId, nodes::get_path_nodes(db, L"/dest/foo/yet/deeper/").value().back().m_nameStringId);
 		}
 	};
 }

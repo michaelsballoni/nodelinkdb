@@ -165,7 +165,19 @@ static std::wstring get_child_nodes_like(db& db, int64_t nodeId)
 	return original_node_parents;
 }
 
-void nodes::move(db& db, int64_t nodeId, int64_t newParentNodeId) 
+void doCopy(db& db, const node& srcNode, const node& destNode)
+{
+	node new_node = nodes::create(db, destNode.m_id, srcNode.m_nameStringId, srcNode.m_typeStringId, srcNode.m_payload);
+	for (const auto& cur_node : nodes::get_children(db, srcNode.m_id))
+		doCopy(db, cur_node, new_node);
+}
+
+void nodes::copy(db& db, int64_t nodeId, int64_t newParentNodeId)
+{
+	doCopy(db, get(db, nodeId), get(db, newParentNodeId));
+}
+
+void nodes::move(db& db, int64_t nodeId, int64_t newParentNodeId)
 {
 	// check inputs
 	if (nodeId == 0)
@@ -259,7 +271,7 @@ void nodes::remove(db& db, int64_t nodeId)
 		throw nldberr("nodes::remove: Node not removed: " + std::to_string(nodeId));
 }
 
-std::optional<node> nodes::get(db& db, int64_t nodeId) 
+node nodes::get(db& db, int64_t nodeId) 
 {
 	auto reader =
 		db.execReader
@@ -268,7 +280,7 @@ std::optional<node> nodes::get(db& db, int64_t nodeId)
 			{ { L"@nodeId", nodeId } }
 		);
 	if (!reader->read())
-		return std::nullopt;
+		throw nldberr("nodes::get: Node not found: " + std::to_string(nodeId));
 	else
 		return node(nodeId, reader->getInt64(0), reader->getInt64(1), reader->getInt64(2), reader->getString(3));
 }

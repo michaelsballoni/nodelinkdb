@@ -66,10 +66,8 @@ void cmd::remove()
 {
 	int64_t orig_id = m_cur.m_id;
 	auto parent = nodes::get(m_db, m_cur.m_parentId);
-	if (!parent.has_value())
-		throw nldberr("Current node has no parent");
 	nodes::remove(m_db, orig_id);
-	m_cur = parent.value();
+	m_cur = parent;
 }
 
 void cmd::rename(const std::wstring& newName)
