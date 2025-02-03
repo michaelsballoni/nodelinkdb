@@ -1,23 +1,19 @@
 api
 ===
-Rod?
+???
 
 sample exe
 ==========
-list available commands at startup if [/-]%[?|help], and if not enough args give usage
-remove: debug
-move
 rename
+remove
 
-setnodeprop name value
-delnodeprop name
-setnodepayload payload
+setprop name value
+setpayload payload
 
 link topath linktype
 unlink topath linktype
 
 setlinkprop topath name value
-dellinkprop topath name
 selinkpayload topath payload
 
 tell: dump everything about the current node
@@ -39,10 +35,10 @@ search: name value -> list matching paths efficiently
 Write README.MD file describing the library, the tests, and the nldb.exe sample app:
 how to build it, how to consume it, how to maintain it
 
-Write CodeProject article
-
 host nodelinkdb.io and write index.html with link to github
 
 Mark the repo public
 
-Post to Reddit /r/programming
+Write CodeProject article
+
+Post article to Reddit /r/programming

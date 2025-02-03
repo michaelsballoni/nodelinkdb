@@ -2,6 +2,87 @@
 
 using namespace nldb;
 
+std::vector<std::wstring> parseCommands(const std::wstring& cmd)
+{
+	std::vector<std::wstring> output;
+	std::wstring collector;
+
+	bool in_quote = false;
+
+	for (size_t s = 0; s < cmd.length(); ++s)
+	{
+		wchar_t c = cmd[s];
+		if (c == '\"')
+		{
+			if (!collector.empty())
+			{
+				output.emplace_back(collector);
+				collector.clear();
+			}
+
+			in_quote = !in_quote;
+			continue;
+		}
+
+		if (!in_quote && c == ' ')
+		{
+			if (!collector.empty())
+			{
+				output.emplace_back(collector);
+				collector.clear();
+			}
+			continue;
+		}
+
+		if (c == '\\') 
+		{
+			if (s + 1 >= cmd.length())
+				throw nldberr("\\ at end of string");
+			wchar_t replacement = 0;
+			switch (cmd[s + 1]) {
+			case 't': replacement = '\t'; break;
+			case 'n': replacement = '\n'; break;
+			case '\'': replacement = '\''; break;
+			case '\"': replacement = '\"'; break;
+			case '\\': replacement = '\\'; break;
+			default: throw nldberr("Invalid string after \\: " + toNarrowStr((std::wstring(cmd[s + 1], 1))));
+			}
+			collector += replacement;
+		}
+		else
+			collector += c;
+	}
+
+	if (!collector.empty())
+	{
+		output.emplace_back(collector);
+		collector.clear();
+	}
+
+	return output;
+}
+
+std::wstring getOneCmd(const std::vector<std::wstring>& cmds)
+{
+	if (cmds.size() != 2)
+		throw nldberr("ERROR: This command takes one command");
+	else
+		return cmds[1]; // right after the command itself
+}
+
+bool verify()
+{
+	printf("Are you sure?  Enter Y or N: ");
+	std::wstring cmd_str;
+	std::getline(std::wcin, cmd_str);
+	if (cmd_str.empty())
+		return false;
+	else if (cmd_str[0] != 'Y' && cmd_str[0] != 'y')
+		return false;
+	else
+		return true;
+}
+
 int wmain(int argc, wchar_t* argv[]) 
 {
 	try 
@@ -31,41 +112,62 @@ int wmain(int argc, wchar_t* argv[])
 					continue;
 				else if (cmd_str == L"quit" || cmd_str == L"exit")
 					break;
-
-				std::wstring after_party;
-				size_t space = cmd_str.find(' ');
-				if (space != std::wstring::npos)
+				
+				if (cmd_str == L"help")
 				{
-					after_party = cmd_str.substr(space + 1);
-					cmd_str = cmd_str.substr(0, space);
+					printf
+					(
+						"Here are the available commands.\n"
+						"Parameters passed into commands can have \"\" around them, not <>\n"
+						"init - Sets up or reinitializes the data in the database file\n"
+						"mount <file system directory path to add to DB>\n"
+						"cd <path of node to change to>\n"
+						"dir - lists children of the current node\n"
+						"mknode <node name> - add a node to the DB\n"
+						"copy <new parent node> - Make a copy the current node in a new parent node\n"
+						"move <new parent node> - Move the current node to a different parent node\n"
+						"rename <node name> - Rename the current node\n"
+						"remove - Removes the current node from the database\n"
+						"string-id <string to get ID of>\n"
+						"string-val <string ID to get value of>\n"
+					);
+					continue;
 				}
+
+				auto cmds = parseCommands(cmd_str);
+				if (cmds.empty())
+					continue;
+				std::wstring cmd_str = cmds[0];
 
 				stopwatch sw("cmd");
-				if (cmd_str == L"string-id")
+				if (cmd_str == L"init")
 				{
-					int64_t id = strings::get_id(db, after_party);
-					printf("ID: %I64d\n", id);
+					if (verify())
+						setup_nldb(db);
 				}
+				else if (cmd_str == L"string-id")
+					printf("ID: %I64d\n", strings::get_id(db, getOneCmd(cmds)));
 				else if (cmd_str == L"string-val")
-				{
-					if (after_party.empty())
-						throw nldberr("string-val: Specify one string IDs to get the value of");
-					int64_t id = _wtoi64(after_party.c_str());
-					std::wstring val = strings::get_val(db, id);
-					printf("Val: %S\n", val.c_str());
-				}
+					printf("Val: %S\n", strings::get_val(db, _wtoi64(getOneCmd(cmds).c_str())).c_str());
 				else if (cmd_str == L"cd")
-					cmd_obj.cd(after_party);
+					cmd_obj.cd(getOneCmd(cmds));
 				else if (cmd_str == L"mount")
-					cmd_obj.mount(after_party);
+					cmd_obj.mount(getOneCmd(cmds));
 				else if (cmd_str == L"dir")
 					printf("%S\n", join(cmd_obj.dir(), L"\n").c_str());
 				else if (cmd_str == L"mknode")
-					cmd_obj.mknode(after_party);
+					cmd_obj.mknode(getOneCmd(cmds));
+				else if (cmd_str == L"copy")
+					cmd_obj.copy(getOneCmd(cmds));
+				else if (cmd_str == L"move")
+					cmd_obj.move(getOneCmd(cmds));
 				else if (cmd_str == L"remove")
-					cmd_obj.remove();
+				{
+					if (verify())
+						cmd_obj.remove();
+				}
 				else if (cmd_str == L"rename")
-					cmd_obj.rename(after_party);
+					cmd_obj.rename(getOneCmd(cmds));
 				else
 					throw nldberr("Unknown command: " + toNarrowStr(cmd_str));
 				sw.record();

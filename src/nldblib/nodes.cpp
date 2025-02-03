@@ -75,10 +75,15 @@ static std::vector<int64_t> get_parents_node_ids(db& db, int64_t nodeId)
 		return str_to_ids(parents_ids_str_opt.value(), '/');
 }
 
+void checkName(const std::wstring& name)
+{
+	if (name.find('/') != std::wstring::npos)
+		throw nldberr("Invalid node name, cannot contain /");
+}
+
 node nodes::create(db& db, int64_t parentNodeId, int64_t nameStringId, int64_t typeStringId, const std::optional<std::wstring>& payload)
 {
-	if (strings::get_val(db, nameStringId).find('/') != std::wstring::npos)
-		throw nldberr("nodes::create: Invalid node name, cannot contain /");
+	checkName(strings::get_val(db, nameStringId));
 
 	auto parent_node_ids = get_parents_node_ids(db, parentNodeId);
 	if (parentNodeId != 0)
@@ -165,16 +170,21 @@ static std::wstring get_child_nodes_like(db& db, int64_t nodeId)
 	return original_node_parents;
 }
 
-void doCopy(db& db, const node& srcNode, const node& destNode)
+void doCopy(db& db, const node& srcNode, const node& destNode, std::unordered_set<int64_t>& seenNodeIds)
 {
+	if (seenNodeIds.find(srcNode.m_id) != seenNodeIds.end())
+		return;
+	seenNodeIds.insert(srcNode.m_id);
+
 	node new_node = nodes::create(db, destNode.m_id, srcNode.m_nameStringId, srcNode.m_typeStringId, srcNode.m_payload);
 	for (const auto& cur_node : nodes::get_children(db, srcNode.m_id))
-		doCopy(db, cur_node, new_node);
+		doCopy(db, cur_node, new_node, seenNodeIds);
 }
 
 void nodes::copy(db& db, int64_t nodeId, int64_t newParentNodeId)
 {
-	doCopy(db, get(db, nodeId), get(db, newParentNodeId));
+	std::unordered_set<int64_t> seen_node_ids;
+	doCopy(db, get(db, nodeId), get(db, newParentNodeId), seen_node_ids);
 }
 
 void nodes::move(db& db, int64_t nodeId, int64_t newParentNodeId)
@@ -289,6 +299,8 @@ void nodes::rename(db& db, int64_t nodeId, int64_t newNameStringId)
 {
 	if (nodeId == 0)
 		throw nldberr("nodes::rename: Cannot rename null node");
+
+	checkName(strings::get_val(db, newNameStringId));
 
 	auto parent_opt = get_parent(db, nodeId);
 	if (!parent_opt.has_value())

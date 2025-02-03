@@ -108,6 +108,13 @@ namespace nldb
 			Assert::AreEqual(std::wstring(L""), nodes::get(db, node2.m_id).m_payload.value());
 
 			// rename the second node
+			try
+			{
+				nodes::rename(db, node2b.m_id, strings::get_id(db, L"/blet monkey"));
+				Assert::Fail();
+			}
+			catch (const nldberr&) {}
+
 			int64_t new_name_string_id = strings::get_id(db, L"new name hot hot hot");
 			nodes::rename(db, node2b.m_id, new_name_string_id);
 			Assert::AreEqual(node2b.m_id, nodes::get_node_in_parent(db, node2b.m_parentId, new_name_string_id).value().m_id);

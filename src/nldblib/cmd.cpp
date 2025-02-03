@@ -17,35 +17,35 @@ std::wstring cmd::get_cur_path()
 	return nodes::get_path_str(m_db, m_cur);
 }
 
-void cmd::cd(const std::wstring& newPath)
+node cmd::get_node_from_path(const std::wstring& path)
 {
-	if (newPath.empty())
-		throw nldberr("Specify a path to change the current directory to");
+	if (path.empty())
+		throw nldberr("Specify a path");
 
-	if (newPath == L"/")
-	{
-		m_cur = node();
-		return;
-	}
+	if (path == L"/")
+		return node();
 
 	std::wstring new_cur_path;
-	if (newPath[0] != '/') // absolute
-	{
-		new_cur_path = newPath;
-	}
-	else // relative
+	if (path[0] != '/') // relative
 	{
 		new_cur_path = nodes::get_path_str(m_db, m_cur);
-		if (new_cur_path.back() != '/' && newPath.find('/') == std::wstring::npos)
+		if ((new_cur_path.empty() || new_cur_path.back() != '/') && path.find('/') == std::wstring::npos)
 			new_cur_path += '/';
-		new_cur_path += newPath;
+		new_cur_path += path;
 	}
+	else // absolute
+		new_cur_path = path;
 
 	auto nodes_opt = nodes::get_path_nodes(m_db, new_cur_path);
-	if (!nodes_opt.has_value())
+	if (!nodes_opt.has_value() || nodes_opt.value().empty())
 		throw nldberr("Path does not resolve to node: " + toNarrowStr(new_cur_path));
 	else
-		m_cur = nodes_opt.value().back();
+		return nodes_opt.value().back();
+}
+
+void cmd::cd(const std::wstring& newPath)
+{
+	m_cur = get_node_from_path(newPath);
 }
 
 std::vector<std::wstring> cmd::dir()
@@ -60,6 +60,16 @@ std::vector<std::wstring> cmd::dir()
 void cmd::mknode(const std::wstring& newNodeName)
 {
 	nodes::create(m_db, m_cur.m_id, strings::get_id(m_db, newNodeName));
+}
+
+void cmd::copy(const std::wstring& newParentNode)
+{
+	nodes::copy(m_db, m_cur.m_id, get_node_from_path(newParentNode).m_id);
+}
+
+void cmd::move(const std::wstring& newParentNode)
+{
+	nodes::move(m_db, m_cur.m_id, get_node_from_path(newParentNode).m_id);
 }
 
 void cmd::remove()
