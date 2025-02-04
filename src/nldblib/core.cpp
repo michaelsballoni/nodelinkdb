@@ -95,3 +95,33 @@ std::vector<std::wstring> nldb::extractParamNames(const std::wstring& sql)
 
     return paramNames;
 }
+
+std::wstring nldb::trim(const std::wstring& str)
+{
+    if (str.empty())
+        return std::wstring();
+
+    if (str.length() == 1)
+        return iswspace(str[0]) ? std::wstring() : str;
+
+    if (!iswspace(str.front()) && !iswspace(str.back()))
+        return str;
+
+    std::wstring retVal;
+    retVal.reserve(str.length());
+
+    // skip whitespace
+    size_t c = 0;
+    while (c < str.length() && iswspace(str[c]))
+        ++c;
+
+    // copy the rest
+    while (c < str.length())
+        retVal.push_back(str[c++]);
+
+    // pop whitespace
+    while (!retVal.empty() && iswspace(retVal.back()))
+        retVal.pop_back();
+
+    return retVal;
+}

@@ -42,9 +42,9 @@ namespace nldb
 			Assert::IsTrue(nodes::get_children(db, node1.m_id).empty());
 			Assert::IsTrue(nodes::get_all_children(db, node1.m_id).empty());
 			Assert::IsTrue(nodes::get_parents(db, node1.m_id).empty());
-			Assert::AreEqual(1U, nodes::get_children(db, 0).size());
+			Assert::AreEqual(size_t(1), nodes::get_children(db, 0).size());
 			Assert::AreEqual(node1.m_id, nodes::get_children(db, 0)[0].m_id);
-			Assert::AreEqual(1U, nodes::get_all_children(db, 0).size());
+			Assert::AreEqual(size_t(1), nodes::get_all_children(db, 0).size());
 			Assert::AreEqual(node1.m_id, nodes::get_all_children(db, 0)[0].m_id);
 
 			// create our second node
@@ -57,17 +57,17 @@ namespace nldb
 			Assert::IsTrue(nodes::get_children(db, node2.m_id).empty());
 			Assert::IsTrue(nodes::get_all_children(db, node2.m_id).empty());
 			Assert::IsTrue(nodes::get_parents(db, node2.m_id).empty());
-			Assert::AreEqual(2U, nodes::get_children(db, 0).size());
+			Assert::AreEqual(size_t(2), nodes::get_children(db, 0).size());
 			Assert::IsTrue(has(nodes::get_children(db, 0), node1.m_id));
 			Assert::IsTrue(has(nodes::get_children(db, 0), node2.m_id));
-			Assert::AreEqual(2U, nodes::get_all_children(db, 0).size());
+			Assert::AreEqual(size_t(2), nodes::get_all_children(db, 0).size());
 			Assert::IsTrue(has(nodes::get_all_children(db, 0), node1.m_id));
 			Assert::IsTrue(has(nodes::get_all_children(db, 0), node2.m_id));
 
 			// move the second into the first
 			nodes::move(db, node2.m_id, node1.m_id);
-			Assert::AreEqual(1U, nodes::get_children(db, node1.m_id).size());
-			Assert::AreEqual(1U, nodes::get_all_children(db, node1.m_id).size());
+			Assert::AreEqual(size_t(1), nodes::get_children(db, node1.m_id).size());
+			Assert::AreEqual(size_t(1), nodes::get_all_children(db, node1.m_id).size());
 			Assert::AreEqual(node2.m_id, nodes::get_children(db, node1.m_id)[0].m_id);
 			Assert::AreEqual(node2.m_id, nodes::get_all_children(db, node1.m_id)[0].m_id);
 			Assert::IsTrue(nodes::get_children(db, node2.m_id).empty());

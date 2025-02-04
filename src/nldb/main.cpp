@@ -2,66 +2,6 @@
 
 using namespace nldb;
 
-std::vector<std::wstring> parseCommands(const std::wstring& cmd)
-{
-	std::vector<std::wstring> output;
-	std::wstring collector;
-
-	bool in_quote = false;
-
-	for (size_t s = 0; s < cmd.length(); ++s)
-	{
-		wchar_t c = cmd[s];
-		if (c == '\"')
-		{
-			if (!collector.empty())
-			{
-				output.emplace_back(collector);
-				collector.clear();
-			}
-
-			in_quote = !in_quote;
-			continue;
-		}
-
-		if (!in_quote && c == ' ')
-		{
-			if (!collector.empty())
-			{
-				output.emplace_back(collector);
-				collector.clear();
-			}
-			continue;
-		}
-
-		if (c == '\\') 
-		{
-			if (s + 1 >= cmd.length())
-				throw nldberr("\\ at end of string");
-			wchar_t replacement = 0;
-			switch (cmd[s + 1]) {
-			case 't': replacement = '\t'; break;
-			case 'n': replacement = '\n'; break;
-			case '\'': replacement = '\''; break;
-			case '\"': replacement = '\"'; break;
-			case '\\': replacement = '\\'; break;
-			default: throw nldberr("Invalid string after \\: " + toNarrowStr((std::wstring(cmd[s + 1], 1))));
-			}
-			collector += replacement;
-		}
-		else
-			collector += c;
-	}
-
-	if (!collector.empty())
-	{
-		output.emplace_back(collector);
-		collector.clear();
-	}
-
-	return output;
-}
-
 std::wstring getOneCmd(const std::vector<std::wstring>& cmds)
 {
 	if (cmds.size() != 2)
@@ -134,7 +74,7 @@ int wmain(int argc, wchar_t* argv[])
 					continue;
 				}
 
-				auto cmds = parseCommands(cmd_str);
+				auto cmds = cmd::parseCommands(cmd_str);
 				if (cmds.empty())
 					continue;
 				std::wstring cmd_str = cmds[0];

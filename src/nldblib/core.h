@@ -36,4 +36,5 @@ namespace nldb
 	std::wstring toLower(const std::wstring& str);
     std::wstring join(const std::vector<std::wstring>& strs, const wchar_t* seperator);
     std::vector<std::wstring> extractParamNames(const std::wstring& sql);
+    std::wstring trim(const std::wstring& str);
 }

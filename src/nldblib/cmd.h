@@ -24,6 +24,8 @@ namespace nldb
 		void remove();
 		void rename(const std::wstring& newName);
 
+		static std::vector<std::wstring> parseCommands(const std::wstring& cmd);
+
 	private:
 		db& m_db;
 		node m_cur;

@@ -39,7 +39,7 @@ namespace nldb
 				Assert::IsTrue(results1.empty());
 
 				auto results2 = search::find_nodes(db, search_query({ search_criteria(strings::get_id(db, L"foo"), L"bar") }));
-				Assert::AreEqual(1U, results2.size());
+				Assert::AreEqual(size_t(1), results2.size());
 				Assert::AreEqual(item_id0, results2[0].m_id);
 
 				props::set(db, node_item_type_id, item_id0, strings::get_id(db, L"blet"), strings::get_id(db, L"monkey"));
@@ -69,7 +69,7 @@ namespace nldb
 							}
 						)
 					);
-				Assert::AreEqual(1U, results4.size());
+				Assert::AreEqual(size_t(1), results4.size());
 				Assert::AreEqual(item_id0, results4[0].m_id);
 
 				auto results5 =
@@ -84,7 +84,7 @@ namespace nldb
 							}
 						)
 					);
-				Assert::AreEqual(1U, results5.size());
+				Assert::AreEqual(size_t(1), results5.size());
 				Assert::AreEqual(item_id0, results5[0].m_id);
 
 				props::set(db, node_item_type_id, item_id1, strings::get_id(db, L"flint"), strings::get_id(db, L"stone"));
@@ -92,7 +92,7 @@ namespace nldb
 				Assert::IsTrue(results6.empty());
 
 				auto results7 = search::find_nodes(db, search_query({ search_criteria(strings::get_id(db, L"flint"), L"stone") }));
-				Assert::AreEqual(1U, results7.size());
+				Assert::AreEqual(size_t(1), results7.size());
 				Assert::AreEqual(item_id1, results7[0].m_id);
 			}
 
@@ -105,7 +105,7 @@ namespace nldb
 				Assert::IsTrue(results8.empty());
 
 				auto results9 = search::find_links(db, search_query({ search_criteria(strings::get_id(db, L"link"), L"sink") }));
-				Assert::AreEqual(1U, results9.size());
+				Assert::AreEqual(size_t(1), results9.size());
 				Assert::AreEqual(item_id2, results9[0].m_id);
 			}
 
@@ -122,7 +122,7 @@ namespace nldb
 						db,
 						search_query({ search_criteria(strings::get_id(db, L"some"), L"%", true) }, L"some", true)
 					);
-				Assert::AreEqual(2U, results10.size());
+				Assert::AreEqual(size_t(2), results10.size());
 				Assert::AreEqual(item_id0, results10[0].m_id);
 				Assert::AreEqual(item_id1, results10[1].m_id);
 
@@ -132,7 +132,7 @@ namespace nldb
 						db,
 						search_query({ search_criteria(strings::get_id(db, L"some"), L"%", true) }, L"some", false)
 					);
-				Assert::AreEqual(2U, results11.size());
+				Assert::AreEqual(size_t(2), results11.size());
 				Assert::AreEqual(item_id1, results11[0].m_id);
 				Assert::AreEqual(item_id0, results11[1].m_id);
 
@@ -142,7 +142,7 @@ namespace nldb
 						db,
 						search_query({ search_criteria(strings::get_id(db, L"some"), L"%", true) }, L"some", false, 1)
 					);
-				Assert::AreEqual(1U, results12.size());
+				Assert::AreEqual(size_t(1), results12.size());
 				Assert::AreEqual(item_id1, results12[0].m_id);
 			}
 
@@ -157,13 +157,13 @@ namespace nldb
 
 				search_query search2({ search_criteria(strings::get_id(db, L"payload"), L"some payload") });
 				auto with_payload_results = search::find_nodes(db, search2);
-				Assert::AreEqual(1U, with_payload_results.size());
+				Assert::AreEqual(size_t(1), with_payload_results.size());
 				Assert::IsTrue(!with_payload_results[0].m_payload.has_value());
 
 				search_query search3({ search_criteria(strings::get_id(db, L"payload"), L"some payload") });
 				search3.m_includePayload = true;
 				auto with_payload_results2 = search::find_nodes(db, search3);
-				Assert::AreEqual(1U, with_payload_results2.size());
+				Assert::AreEqual(size_t(1), with_payload_results2.size());
 				Assert::AreEqual(std::wstring(L"some payload"), with_payload_results2[0].m_payload.value());
 			}
 
@@ -177,7 +177,7 @@ namespace nldb
 
 				search_query search2({ search_criteria(strings::get_id(db, L"name"), L"show") });
 				auto with_results = search::find_nodes(db, search2);
-				Assert::AreEqual(1U, with_results.size());
+				Assert::AreEqual(size_t(1), with_results.size());
 				Assert::IsTrue(with_results[0] == node1);
 			}
 
@@ -192,7 +192,7 @@ namespace nldb
 
 				search_query search2({ search_criteria(strings::get_id(db, L"path"), L"/show") });
 				auto with_results = search::find_nodes(db, search2);
-				Assert::AreEqual(1U, with_results.size());
+				Assert::AreEqual(size_t(1), with_results.size());
 				Assert::IsTrue(with_results[0] == node2);
 			}
 
@@ -205,7 +205,7 @@ namespace nldb
 
 				search_query search2({ search_criteria(strings::get_id(db, L"path"), L"/show") });
 				auto with_results = search::find_nodes(db, search2);
-				Assert::AreEqual(3U, with_results.size());
+				Assert::AreEqual(size_t(3), with_results.size());
 				Assert::IsTrue(has(with_results, node2.m_id));
 				Assert::IsTrue(has(with_results, node3.m_id));
 				Assert::IsTrue(has(with_results, node4.m_id));
@@ -216,7 +216,7 @@ namespace nldb
 
 				search_query search3({ search_criteria(strings::get_id(db, L"parent"), L"/show") });
 				auto with_results2 = search::find_nodes(db, search3);
-				Assert::AreEqual(2U, with_results2.size());
+				Assert::AreEqual(size_t(2), with_results2.size());
 				Assert::IsTrue(has(with_results2, node2.m_id));
 				Assert::IsTrue(has(with_results2, node3.m_id));
 			}

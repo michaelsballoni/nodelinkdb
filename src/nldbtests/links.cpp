@@ -20,11 +20,11 @@ namespace nldb
 			link link = links::create(db, from_node.m_id, to_node.m_id, 0, L"pay-load");
 
 			auto from_links = links::get_out_links(db, from_node.m_id);
-			Assert::AreEqual(1U, from_links.size());
+			Assert::AreEqual(size_t(1), from_links.size());
 			Assert::AreEqual(link.m_id, from_links[0].m_id);
 
 			auto to_links = links::get_in_links(db, to_node.m_id);
-			Assert::AreEqual(1U, to_links.size());
+			Assert::AreEqual(size_t(1), to_links.size());
 			Assert::AreEqual(link.m_id, to_links[0].m_id);
 
 			auto from_link = links::get_link(db, from_links[0].m_id);
