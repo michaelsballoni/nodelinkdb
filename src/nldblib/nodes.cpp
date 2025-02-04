@@ -170,21 +170,35 @@ static std::wstring get_child_nodes_like(db& db, int64_t nodeId)
 	return original_node_parents;
 }
 
-void doCopy(db& db, const node& srcNode, const node& destNode, std::unordered_set<int64_t>& seenNodeIds)
+void doCopy(db& db, const node& srcNode, const node& destNode)
 {
-	if (seenNodeIds.find(srcNode.m_id) != seenNodeIds.end())
-		return;
-	seenNodeIds.insert(srcNode.m_id);
-
 	node new_node = nodes::create(db, destNode.m_id, srcNode.m_nameStringId, srcNode.m_typeStringId, srcNode.m_payload);
 	for (const auto& cur_node : nodes::get_children(db, srcNode.m_id))
-		doCopy(db, cur_node, new_node, seenNodeIds);
+		doCopy(db, cur_node, new_node);
 }
 
 void nodes::copy(db& db, int64_t nodeId, int64_t newParentNodeId)
 {
+	if (nodeId == newParentNodeId)
+		throw nldberr("nodes::copy: Cannot copy node into itself");
+
+	// You can't copy this into a child of this
+	{
+		auto child_reader =
+			db.execReader
+			(
+				L"SELECT id FROM nodes WHERE parents LIKE @childParents",
+				{ { L"@childParents", get_child_nodes_like(db, nodeId) } }
+			);
+		while (child_reader->read())
+		{
+			if (child_reader->getInt64(0) == newParentNodeId)
+				throw nldberr("nodes::copy: Cannot copy node into child of source");
+		}
+	}
+
 	std::unordered_set<int64_t> seen_node_ids;
-	doCopy(db, get(db, nodeId), get(db, newParentNodeId), seen_node_ids);
+	doCopy(db, get(db, nodeId), get(db, newParentNodeId));
 }
 
 void nodes::move(db& db, int64_t nodeId, int64_t newParentNodeId)
@@ -241,7 +255,7 @@ void nodes::move(db& db, int64_t nodeId, int64_t newParentNodeId)
 					{ L"@nodeId", child_id },
 					{ L"@newParents", new_parents_str },
 				}
-				);
+			);
 		if (rows_affected != 1)
 			throw nldberr("nodes::move: Child node not updated: " + std::to_string(child_id));
 	}
@@ -253,15 +267,14 @@ void nodes::remove(db& db, int64_t nodeId)
 	if (nodeId == 0)
 		throw nldberr("nodes::remove: Cannot remove node: " + std::to_string(nodeId));
 
-	// collect all children nodes
-	std::wstring child_nodes_like = get_child_nodes_like(db, nodeId);
+	// collect all children node IDs
 	std::vector<int64_t> child_node_ids;
 	{
 		auto child_reader = 
 			db.execReader
 			(
 				L"SELECT id FROM nodes WHERE parents LIKE @childParents", 
-				{ { L"@childParents", child_nodes_like } }
+				{ { L"@childParents", get_child_nodes_like(db, nodeId) } }
 			);
 		while (child_reader->read())
 			child_node_ids.push_back(child_reader->getInt64(0));
@@ -270,7 +283,9 @@ void nodes::remove(db& db, int64_t nodeId)
 	// delete the children nodes
 	if (!child_node_ids.empty())
 	{
-		int rows_affected = db.execSql(L"DELETE FROM nodes WHERE id IN (@nodeIds)", { { L"@nodeIds", ids_to_sql_in(child_node_ids) } });
+		std::wstring sql = L"DELETE FROM nodes WHERE id IN (@nodeIds)";
+		replace(sql, L"@nodeIds", ids_to_sql_in(child_node_ids));
+		int rows_affected = db.execSql(sql, {});
 		if (rows_affected != static_cast<int64_t>(child_node_ids.size()))
 			throw nldberr("nodes::remove: Not all child nodes removed: " + std::to_string(rows_affected));
 	}
@@ -385,12 +400,9 @@ std::vector<node> nodes::get_parents(db& db, int64_t nodeId)
 
 	std::unordered_map<int64_t, node> collector;
 	collector.reserve(parents_node_ids.size());
-	auto reader =
-		db.execReader
-		(
-			L"SELECT id, parent_id, name_string_id, type_string_id FROM nodes WHERE id IN (@nodeIds)",
-			{ { L"@nodeIds", ids_to_sql_in(parents_node_ids) } }
-		);
+	std::wstring sql = L"SELECT id, parent_id, name_string_id, type_string_id FROM nodes WHERE id IN (@nodeIds)";
+	replace(sql, L"@nodeIds", ids_to_sql_in(parents_node_ids));
+	auto reader = db.execReader(sql, {});
 	while (reader->read())
 		collector.insert({ reader->getInt64(0), node(reader->getInt64(0), reader->getInt64(1), reader->getInt64(2), reader->getInt64(3)) });
 

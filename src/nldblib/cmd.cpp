@@ -82,7 +82,9 @@ void cmd::remove()
 
 void cmd::rename(const std::wstring& newName)
 {
-	nodes::rename(m_db, m_cur.m_id, strings::get_id(m_db, newName));
+	int64_t new_name_string_id = strings::get_id(m_db, newName);
+	nodes::rename(m_db, m_cur.m_id, new_name_string_id);
+	m_cur.m_nameStringId = new_name_string_id;
 }
 
 std::vector<std::wstring> cmd::parseCommands(const std::wstring& cmd)
@@ -121,24 +123,7 @@ std::vector<std::wstring> cmd::parseCommands(const std::wstring& cmd)
 			continue;
 		}
 
-		if (c == '\\')
-		{
-			if (s + 1 >= cmd.length())
-				throw nldberr("\\ at end of string");
-			wchar_t replacement = 0;
-			switch (cmd[s + 1]) {
-			case 't': replacement = '\t'; break;
-			case 'n': replacement = '\n'; break;
-			case '\'': replacement = '\''; break;
-			case '\"': replacement = '\"'; break;
-			case '\\': replacement = '\\'; break;
-			default: throw nldberr("Invalid string after \\: " + toNarrowStr((std::wstring(cmd[s + 1], 1))));
-			}
-			collector += replacement;
-			++s;
-		}
-		else
-			collector += c;
+		collector += c;
 	}
 
 	collector = trim(collector);

@@ -45,9 +45,6 @@ namespace nldb
 			ValidateCmd(L"\"fred some\" blet", { L"fred some", L"blet" });
 			ValidateCmd(L"\"fred some\" \"blet\"", { L"fred some", L"blet" });
 			ValidateCmd(L"\"fred some\" \"blet\" \"some monkey\"", { L"fred some", L"blet", L"some monkey" });
-
-			ValidateCmd(L"\"\\t\"", { L"\t" });
-			ValidateCmd(L"\"foo\\tbar\"", { L"foo\tbar" });
 		}
 	};
 }
