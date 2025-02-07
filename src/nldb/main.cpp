@@ -68,13 +68,16 @@ int wmain(int argc, wchar_t* argv[])
 						"move <new parent node> - Move the current node to a different parent node\n"
 						"rename <node name> - Rename the current node\n"
 						"remove - Removes the current node from the database\n"
+						"setprop <name> <value> - Omit the value parameter to remove a property of a name\n"
+						"setpayload <payload>\n"
+						"search <name 1> <value 1> <name 2> <value 2> ...\n"
 						"string-id <string to get ID of>\n"
 						"string-val <string ID to get value of>\n"
 					);
 					continue;
 				}
 
-				auto cmds = cmd::parseCommands(cmd_str);
+				auto cmds = cmd::parse_cmds(cmd_str);
 				if (cmds.empty())
 					continue;
 				std::wstring cmd_str = cmds[0];
@@ -108,6 +111,17 @@ int wmain(int argc, wchar_t* argv[])
 				}
 				else if (cmd_str == L"rename")
 					cmd_obj.rename(getOneCmd(cmds));
+				else if (cmd_str == L"setprop")
+					cmd_obj.set_prop(cmds);
+				else if (cmd_str == L"setpayload")
+					cmd_obj.set_payload(getOneCmd(cmds));
+				else if (cmd_str == L"tell")
+				{
+					std::wstring tell = cmd_obj.tell();
+					printf("%S\n", tell.c_str());
+				}
+				else if (cmd_str == L"search")
+					printf("%S\n", cmd_obj.search(cmds).c_str());
 				else
 					throw nldberr("Unknown command: " + toNarrowStr(cmd_str));
 				sw.record();

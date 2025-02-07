@@ -2,9 +2,16 @@
 #include "cmd.h"
 #include "loader.h"
 #include "nodes.h"
+#include "props.h"
+#include "search.h"
 #include "strings.h"
 
 using namespace nldb;
+
+cmd::cmd(db& db) : m_db(db)
+{
+	m_nodeItemTypeId = strings::get_id(db, L"node");
+}
 
 void cmd::mount(const std::wstring& dirPath)
 {
@@ -87,7 +94,64 @@ void cmd::rename(const std::wstring& newName)
 	m_cur.m_nameStringId = new_name_string_id;
 }
 
-std::vector<std::wstring> cmd::parseCommands(const std::wstring& cmd)
+void cmd::set_prop(const std::vector<std::wstring>& cmds)
+{
+	if (cmds.size() < 2)
+		throw nldberr("Specify the name of the property to set");
+	else if (cmds.size() > 3)
+		throw nldberr("Specify the name and value of the property to set");
+	else if (cmds.size() == 2)
+		props::set(m_db, m_nodeItemTypeId, m_cur.m_id, strings::get_id(m_db, cmds[1]), -1);
+	else
+		props::set(m_db, m_nodeItemTypeId, m_cur.m_id, strings::get_id(m_db, cmds[1]), strings::get_id(m_db, cmds[2]));
+}
+
+void cmd::set_payload(const std::wstring& payload)
+{
+	nodes::set_payload(m_db, m_cur.m_id, payload);
+}
+
+std::wstring cmd::tell()
+{
+	std::wstringstream stream;
+
+	stream << L"ID:      " << m_cur.m_id << L"\n";
+	stream << L"Name:    " << strings::get_val(m_db, m_cur.m_nameStringId) << L"\n";
+	stream << L"Parent:  " << nodes::get_path_str(m_db, m_cur) << L"\n";
+	stream << L"Payload: " << nodes::get(m_db, m_cur.m_id).m_payload.value_or(L"") << L"\n";
+
+	auto prop_string_ids = props::get(m_db, m_nodeItemTypeId, m_cur.m_id);
+	if (!prop_string_ids.empty())
+	{
+		stream << L"Properties:\n" << props::summarize(m_db, prop_string_ids) << L"\n";
+	}
+	else
+		stream << L"Properties: (none)" << L"\n";
+
+	return stream.str();
+}
+
+std::wstring cmd::search(const std::vector<std::wstring>& cmd)
+{
+	search_query query;
+	for (size_t s = 1; s + 1 < cmd.size(); s += 2)
+	{
+		query.m_criteria.push_back
+		(
+			search_criteria(strings::get_id(m_db, cmd[s]), cmd[s + 1])
+		);
+	}
+	std::wstring output;
+	for (const auto& node : search::find_nodes(m_db, query))
+	{
+		if (!output.empty())
+			output += '\n';
+		output += nodes::get_path_str(m_db, node);
+	}
+	return output;
+}
+
+std::vector<std::wstring> cmd::parse_cmds(const std::wstring& cmd)
 {
 	std::vector<std::wstring> output;
 	std::wstring collector;

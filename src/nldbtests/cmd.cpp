@@ -11,7 +11,7 @@ namespace nldb
 	private:
 		void ValidateCmd(std::wstring cmd, std::vector<std::wstring> matches)
 		{
-			auto gotten = cmd::parseCommands(cmd);
+			auto gotten = cmd::parse_cmds(cmd);
 			Assert::AreEqual(matches.size(), gotten.size());
 			for (size_t m = 0; m < matches.size(); ++m)
 				Assert::AreEqual(matches[m], gotten[m]);

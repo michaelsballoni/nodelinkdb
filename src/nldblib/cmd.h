@@ -8,7 +8,7 @@ namespace nldb
 	class cmd
 	{
 	public:
-		cmd(db& db) : m_db(db) {}
+		cmd(db& db);
 
 		void mount(const std::wstring& dirPath);
 
@@ -24,10 +24,18 @@ namespace nldb
 		void remove();
 		void rename(const std::wstring& newName);
 
-		static std::vector<std::wstring> parseCommands(const std::wstring& cmd);
+		void set_prop(const std::vector<std::wstring>& cmds);
+		void set_payload(const std::wstring& payload);
+
+		std::wstring tell();
+
+		std::wstring search(const std::vector<std::wstring>& cmd);
+
+		static std::vector<std::wstring> parse_cmds(const std::wstring& cmd);
 
 	private:
 		db& m_db;
 		node m_cur;
+		int64_t m_nodeItemTypeId;
 	};
 }

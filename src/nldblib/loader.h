@@ -12,10 +12,6 @@ namespace nldb
 
 	private:
 		db& m_db;
-
-		int64_t m_file_type_string_id;
-		int64_t m_dir_type_string_id;
-
 		std::unordered_map<std::wstring, int64_t> m_string_cache;
 	};
 }

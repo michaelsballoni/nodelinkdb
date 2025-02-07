@@ -1,44 +1,19 @@
-api
-===
-???
-
 sample exe
 ==========
-rename
-remove
-
-setprop name value
-setpayload payload
-
-link topath linktype
-unlink topath linktype
-
-setlinkprop topath name value
-selinkpayload topath payload
+link topath
+unlink topath
 
 tell: dump everything about the current node
-path
-type
-node props
-node payload
 in-links
-	type
-	props
-	payload
 out-links
-	...
-
-search: name value -> list matching paths efficiently
 
 ===
 
 Write README.MD file describing the library, the tests, and the nldb.exe sample app:
-how to build it, how to consume it, how to maintain it
+how to build it, how to use it
 
 host nodelinkdb.io and write index.html with link to github
 
 Mark the repo public
-
-Write CodeProject article
 
 Post article to Reddit /r/programming
