@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "cmd.h"
+#include "links.h"
 #include "loader.h"
 #include "nodes.h"
 #include "props.h"
@@ -118,7 +119,9 @@ std::wstring cmd::tell()
 	stream << L"ID:      " << m_cur.m_id << L"\n";
 	stream << L"Name:    " << strings::get_val(m_db, m_cur.m_nameStringId) << L"\n";
 	stream << L"Parent:  " << nodes::get_path_str(m_db, m_cur) << L"\n";
-	stream << L"Payload: " << nodes::get(m_db, m_cur.m_id).m_payload.value_or(L"") << L"\n";
+
+	auto payload_opt = nodes::get(m_db, m_cur.m_id).m_payload;
+	stream << L"Payload: " << payload_opt.value_or(L"(not loaded)") << L"\n";
 
 	auto prop_string_ids = props::get(m_db, m_nodeItemTypeId, m_cur.m_id);
 	if (!prop_string_ids.empty())
@@ -128,11 +131,37 @@ std::wstring cmd::tell()
 	else
 		stream << L"Properties: (none)" << L"\n";
 
+	auto out_links = links::get_out_links(m_db, m_cur.m_id);
+	if (!out_links.empty())
+	{
+		stream << L"Out Links:" << L"\n";
+		for (const auto& out_link : out_links)
+			stream << nodes::get_path_str(m_db, nodes::get(m_db, out_link.m_toNodeId)) << L"\n";
+	}
+	else
+		stream << L"Out Links: (none)" << L"\n";
+
+	auto in_links = links::get_in_links(m_db, m_cur.m_id);
+	if (!in_links.empty())
+	{
+		stream << L"In Links:" << L"\n";
+		for (const auto& in_link : in_links)
+			stream << nodes::get_path_str(m_db, nodes::get(m_db, in_link.m_fromNodeId)) << L"\n";
+	}
+	else
+		stream << L"In Links:  (none)" << L"\n";
+
 	return stream.str();
 }
 
 std::wstring cmd::search(const std::vector<std::wstring>& cmd)
 {
+	if (cmd.size() < 3)
+		throw nldberr("Pass in name / value pairs to search properties with");
+	
+	if (((int)cmd.size() - 1) % 2)
+		throw nldberr("Pass in evenly matched name / value pairs to search with");
+
 	search_query query;
 	for (size_t s = 1; s + 1 < cmd.size(); s += 2)
 	{
@@ -149,6 +178,18 @@ std::wstring cmd::search(const std::vector<std::wstring>& cmd)
 		output += nodes::get_path_str(m_db, node);
 	}
 	return output;
+}
+
+void cmd::link(const std::wstring& toPath)
+{
+	auto to_node = get_node_from_path(toPath);
+	links::create(m_db, m_cur.m_id, to_node.m_id, 0);
+}
+
+void cmd::unlink(const std::wstring& toPath)
+{
+	auto to_node = get_node_from_path(toPath);
+	links::remove(m_db, m_cur.m_id, to_node.m_id, 0);
 }
 
 std::vector<std::wstring> cmd::parse_cmds(const std::wstring& cmd)

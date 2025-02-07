@@ -122,6 +122,10 @@ int wmain(int argc, wchar_t* argv[])
 				}
 				else if (cmd_str == L"search")
 					printf("%S\n", cmd_obj.search(cmds).c_str());
+				else if (cmd_str == L"link")
+					cmd_obj.link(getOneCmd(cmds));
+				else if (cmd_str == L"unlink")
+					cmd_obj.unlink(getOneCmd(cmds));
 				else
 					throw nldberr("Unknown command: " + toNarrowStr(cmd_str));
 				sw.record();

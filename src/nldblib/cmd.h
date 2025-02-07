@@ -31,6 +31,9 @@ namespace nldb
 
 		std::wstring search(const std::vector<std::wstring>& cmd);
 
+		void link(const std::wstring& toPath);
+		void unlink(const std::wstring& toPath);
+
 		static std::vector<std::wstring> parse_cmds(const std::wstring& cmd);
 
 	private:

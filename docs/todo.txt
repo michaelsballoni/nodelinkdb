@@ -1,19 +1,7 @@
-sample exe
-==========
-link topath
-unlink topath
-
-tell: dump everything about the current node
-in-links
-out-links
-
-===
-
-Write README.MD file describing the library, the tests, and the nldb.exe sample app:
-how to build it, how to use it
+Write README.MD file describing the library, the tests, and the nldb.exe sample app
 
 host nodelinkdb.io and write index.html with link to github
 
 Mark the repo public
 
-Post article to Reddit /r/programming
+Check in with Rod

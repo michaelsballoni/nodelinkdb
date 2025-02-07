@@ -8,6 +8,7 @@ namespace nldb
 	class links {
 	public:
 		static link create(db& db, int64_t fromNodeId, int64_t toNodeId, int64_t typeStringId, const std::optional<std::wstring>& payload = std::nullopt);
+		static bool remove(db& db, int64_t fromNodeId, int64_t toNodeId, int64_t typeStringId);
 
 		static std::optional<link> get_link(db& db, int64_t linkId);
 

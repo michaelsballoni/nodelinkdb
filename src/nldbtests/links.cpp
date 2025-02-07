@@ -29,6 +29,15 @@ namespace nldb
 
 			auto from_link = links::get_link(db, from_links[0].m_id);
 			Assert::AreEqual(std::wstring(L"pay-load"), from_link.value().m_payload.value());
+
+			Assert::IsTrue(links::remove(db, from_node.m_id, to_node.m_id, 0));
+			Assert::IsTrue(!links::remove(db, from_node.m_id, to_node.m_id, 0));
+
+			auto from_links2 = links::get_out_links(db, from_node.m_id);
+			Assert::IsTrue(from_links2.empty());
+
+			auto to_links2 = links::get_in_links(db, to_node.m_id);
+			Assert::IsTrue(to_links2.empty());
 		}
 	};
 }

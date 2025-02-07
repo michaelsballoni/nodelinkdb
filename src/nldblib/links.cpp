@@ -37,6 +37,24 @@ link links::create(db& db, int64_t fromNodeId, int64_t toNodeId, int64_t typeStr
 	return link(new_id, fromNodeId, toNodeId, typeStringId);
 }
 
+bool links::remove(db& db, int64_t fromNodeId, int64_t toNodeId, int64_t typeStringId)
+{
+	int affected =
+		db.execSql
+		(
+			L"DELETE FROM links WHERE " 
+			L"from_node_id = @fromNodeId AND " 
+			L"to_node_id = @toNodeId AND " 
+			L"type_string_id = @typeStringId",
+			{
+				{ L"@fromNodeId", fromNodeId },
+				{ L"@toNodeId", toNodeId },
+				{ L"@typeStringId", typeStringId },
+			}
+		);
+	return affected > 0;
+}
+
 std::optional<link> links::get_link(db& db, int64_t linkId)
 {
 	auto reader =
