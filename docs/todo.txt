@@ -1,7 +1,0 @@
-Write README.MD file describing the library, the tests, and the nldb.exe sample app
-
-host nodelinkdb.io and write index.html with link to github
-
-Mark the repo public
-
-Check in with Rod

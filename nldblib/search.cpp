@@ -23,6 +23,7 @@ std::wstring get_find_sql(db& db, const find_params& findParams, paramap& sqlPar
 	int64_t path_string_id = strings::get_id(db, L"path");
 	int64_t name_string_id = strings::get_id(db, L"name");
 	int64_t payload_string_id = strings::get_id(db, L"payload");
+	int64_t type_string_id = strings::get_id(db, L"type");
 
 	sqlParams[L"@node_item_type_id"] = strings::get_id(db, findParams.m_itemType);
 	sqlParams[L"@order_by_string_id"] = strings::get_id(db, findParams.m_query.m_orderBy);
@@ -57,6 +58,11 @@ std::wstring get_find_sql(db& db, const find_params& findParams, paramap& sqlPar
 			new_sql += L')';
 
 			where += new_sql;
+		}
+		else if (crit.m_nameStringId == type_string_id) // searching by type
+		{
+			sqlParams[L"@valstrid" + param_num_str] = strings::get_id(db, crit.m_valueString);
+			where += L"type_string_id = @valstrid" + param_num_str;
 		}
 		else if (crit.m_nameStringId == payload_string_id) // search by payload
 		{

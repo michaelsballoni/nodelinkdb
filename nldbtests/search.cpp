@@ -220,6 +220,28 @@ namespace nldb
 				Assert::IsTrue(has(with_results2, node2.m_id));
 				Assert::IsTrue(has(with_results2, node3.m_id));
 			}
+
+			//
+			// SEARCH BY TYPE
+			//
+			{
+				auto node3 = nodes::create(db, node1.m_id, strings::get_id(db, L"leaf2"), strings::get_id(db, L"type1"));
+				auto node4 = nodes::create(db, node3.m_id, strings::get_id(db, L"leafier2"), strings::get_id(db, L"type2"));
+
+				search_query search2({ search_criteria(strings::get_id(db, L"type"), L"type1") });
+				auto with_results = search::find_nodes(db, search2);
+				Assert::AreEqual(size_t(1), with_results.size());
+				Assert::IsTrue(has(with_results, node3.m_id));
+
+				search_query search3({ search_criteria(strings::get_id(db, L"type"), L"type2") });
+				auto with_results2 = search::find_nodes(db, search3);
+				Assert::AreEqual(size_t(1), with_results2.size());
+				Assert::IsTrue(has(with_results2, node4.m_id));
+
+				search_query search4({ search_criteria(strings::get_id(db, L"type"), L"fred") });
+				auto with_results3 = search::find_nodes(db, search4);
+				Assert::AreEqual(size_t(0), with_results3.size());
+			}
 		}
 	};
 }
