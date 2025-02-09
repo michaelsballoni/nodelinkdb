@@ -183,13 +183,13 @@ std::wstring cmd::search(const std::vector<std::wstring>& cmd)
 void cmd::link(const std::wstring& toPath)
 {
 	auto to_node = get_node_from_path(toPath);
-	links::create(m_db, m_cur.m_id, to_node.m_id, 0);
+	links::create(m_db, m_cur.m_id, to_node.m_id);
 }
 
 void cmd::unlink(const std::wstring& toPath)
 {
 	auto to_node = get_node_from_path(toPath);
-	links::remove(m_db, m_cur.m_id, to_node.m_id, 0);
+	links::remove(m_db, m_cur.m_id, to_node.m_id);
 }
 
 std::vector<std::wstring> cmd::parse_cmds(const std::wstring& cmd)

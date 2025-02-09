@@ -317,11 +317,7 @@ void nodes::rename(db& db, int64_t nodeId, int64_t newNameStringId)
 
 	checkName(strings::get_val(db, newNameStringId));
 
-	auto parent_opt = get_parent(db, nodeId);
-	if (!parent_opt.has_value())
-		throw nldberr("nodes::rename: Parent not found: " + std::to_string(nodeId));
-
-	int64_t parent_id = parent_opt.value().m_id;
+	int64_t parent_id = get_parent(db, nodeId).m_id;
 	auto existing_node_opt = get_node_in_parent(db, parent_id, newNameStringId);
 	if (existing_node_opt.has_value())
 		throw nldberr("nodes::rename: Node with new name already exists: " + std::to_string(nodeId));
@@ -372,11 +368,8 @@ std::optional<node> nodes::get_node_in_parent(db& db, int64_t parentNodeId, int6
 	return node(id, parentNodeId, nameStringId, type_string_id);
 }
 
-std::optional<node> nodes::get_parent(db& db, int64_t nodeId) 
+node nodes::get_parent(db& db, int64_t nodeId) 
 {
-	if (nodeId == 0)
-		return std::nullopt;
-
 	auto reader =
 		db.execReader
 		(
@@ -384,7 +377,7 @@ std::optional<node> nodes::get_parent(db& db, int64_t nodeId)
 			{ { L"@id", nodeId } }
 		);
 	if (!reader->read())
-		return std::nullopt;
+		throw nldberr("nodes::get_parent: Parent not found: " + std::to_string(nodeId));
 	else
 		return node(reader->getInt64(0), reader->getInt64(1), reader->getInt64(2), reader->getInt64(3));
 }
@@ -498,14 +491,12 @@ std::vector<node> nodes::get_path(db& db, const node& cur)
 	node cur_node = cur;
 	do
 	{
-		if (cur_node.m_id != 0)
+		if (cur_node.m_id == 0)
+			break;
+		else
 			output.emplace_back(cur_node);
 
-		auto new_node_opt = get_parent(db, cur_node.m_id);
-		if (!new_node_opt.has_value())
-			break;
-		cur_node = new_node_opt.value();
-
+		cur_node = get_parent(db, cur_node.m_id);
 		if (seen_node_ids.find(cur_node.m_id) != seen_node_ids.end())
 			break;
 		else

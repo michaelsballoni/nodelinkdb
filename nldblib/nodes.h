@@ -18,7 +18,7 @@ namespace nldb
 		static node get(db& db, int64_t nodeId);
 		static std::optional<node> get_node_in_parent(db& db, int64_t parentNodeId, int64_t nameStringId);
 
-		static std::optional<node> get_parent(db& db, int64_t nodeId);
+		static node get_parent(db& db, int64_t nodeId);
 		static std::vector<node> get_parents(db& db, int64_t nodeId);
 		static std::vector<node> get_children(db& db, int64_t nodeId);
 		static std::vector<node> get_all_children(db& db, int64_t nodeId);

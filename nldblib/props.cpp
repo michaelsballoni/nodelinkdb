@@ -5,9 +5,9 @@
 
 using namespace nldb;
 
-void props::set(db& db, int64_t item_type_string_id, int64_t item_id, int64_t name_string_id, int64_t value_string_id) 
+void props::set(db& db, int64_t itemTypeStringId, int64_t itemId, int64_t nameStringId, int64_t valueStringId)
 {
-	if (value_string_id >= 0)
+	if (valueStringId >= 0)
 	{
 		db.execSql
 		(
@@ -15,24 +15,24 @@ void props::set(db& db, int64_t item_type_string_id, int64_t item_id, int64_t na
 			L"VALUES(@item_type_string_id, @item_id, @name_string_id, @value_string_id) "
 			L"ON CONFLICT(itemtypstrid, itemid, namestrid) DO UPDATE SET valstrid = @value_string_id",
 			{
-				{ L"@item_type_string_id", item_type_string_id },
-				{ L"@item_id", item_id },
-				{ L"@name_string_id", name_string_id },
-				{ L"@value_string_id", value_string_id },
+				{ L"@item_type_string_id", itemTypeStringId },
+				{ L"@item_id", itemId },
+				{ L"@name_string_id", nameStringId },
+				{ L"@value_string_id", valueStringId },
 			}
 		);
 	}
 	else // delete the value for the name
 	{
-		if (name_string_id >= 0)
+		if (nameStringId >= 0)
 		{
 			db.execSql
 			(
 				L"DELETE FROM props WHERE itemtypstrid = @item_type_string_id AND itemid = @item_id AND namestrid = @name_string_id",
 				{
-					{ L"@item_type_string_id", item_type_string_id },
-					{ L"@item_id", item_id },
-					{ L"@name_string_id", name_string_id },
+					{ L"@item_type_string_id", itemTypeStringId },
+					{ L"@item_id", itemId },
+					{ L"@name_string_id", nameStringId },
 				}
 			);
 		}
@@ -42,15 +42,15 @@ void props::set(db& db, int64_t item_type_string_id, int64_t item_id, int64_t na
 			(
 				L"DELETE FROM props WHERE itemtypstrid = @item_type_string_id AND itemid = @item_id",
 				{
-					{ L"@item_type_string_id", item_type_string_id },
-					{ L"@item_id", item_id },
+					{ L"@item_type_string_id", itemTypeStringId },
+					{ L"@item_id", itemId },
 				}
 			);
 		}
 	}
 }
 
-std::unordered_map<int64_t, int64_t> props::get(db& db, int64_t item_type_string_id, int64_t item_id) 
+std::unordered_map<int64_t, int64_t> props::get(db& db, int64_t itemTypeStringId, int64_t itemId)
 {
 	std::unordered_map<int64_t, int64_t> output;
 	auto reader = 
@@ -58,8 +58,8 @@ std::unordered_map<int64_t, int64_t> props::get(db& db, int64_t item_type_string
 		(
 			L"SELECT namestrid, valstrid FROM props WHERE itemtypstrid = @item_type_string_id AND itemid = @item_id", 
 			{ 
-				{L"@item_type_string_id", item_type_string_id },
-				{L"@item_id", item_id },
+				{L"@item_type_string_id", itemTypeStringId },
+				{L"@item_id", itemId },
 			}
 		);
 	while (reader->read()) 
