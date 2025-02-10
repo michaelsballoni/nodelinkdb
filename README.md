@@ -1,11 +1,10 @@
 # nodelinkdb
 Node Link DB, nldb for short, gives you the power of a graph database in your C++ application.\
-It uses the file-based database SQLite to do the heavy lifting.\
-Developed on Windows using Visual Studio, there is not any Win32 dependency at all, so it is completely portable.
+As far as nldb goes, being a graph database is nothing fancier than nodes and links and properties.\
+More background on graph databases can be found on [Wikipedia](https://en.wikipedia.org/wiki/Graph_database).
 
 ## Projects
-The repos root directory is a Visual Studio solution containing the following projects:
-
+The repos root directory is a Visual Studio solution containing the following projects:\
 ### nldblib
 The nldblib project is the static library you integrate into your project.\
 Include "nldb.h" and it includes everything that you need to use nldblib.
@@ -18,15 +17,21 @@ This project is just for putting the library through its paces with a ready supp
 The nldbtests project contains the unit tests for the project.
 
 ## SQLite integration
-Get the SQLite amalgamation and place the sqlite3.c and sqlite3.h files in a directory named sqlite at the same level as the nodelinkdb directory.\
-The solution should then build and you'll have a static library to link against and a test program to experiment with.
+nldb uses the file-based database SQLite to do the heavy lifting.\
+SQLite is a powerful and easy to use file-based database.  There is no server; instead, you direct the SQLite API to interact with a file on disk, then you use SQL with the SQLite API directly.\
+\
+To get nldb working with SQLite, get the [SQLite amalgamation](https://www.sqlite.org/download.html), get the "C source code as an amalgamation" one.
+Extract it and place the sqlite3.c and sqlite3.h files in a directory named sqlite at the same level as the nodelinkdb directory.\
+
+## Building
+With the solution cloned and the sqlite directory set up alongside the solution directory, the solution should then build and you'll have a static library to link against and a test program to experiment with.
 
 ## Code Walkthrough
 ### Setting Up
 The nldb namespace is used throughout.  Static classes in this workspace are what you call into from your code.\
 First, though, this is a database-driven system, so you'll use the db class, with the constructor that takes the path to the database filename.\
 Create a db object with the path to the file you want to use.\
-If you're creating a new database call the global function nldb::setup_nldb(db) to initialize or reinitialize the database by creating or recreating the tables.\
+If you're creating a new database call the global function nldb::setup_nldb(db) to initialize the database with the tables.\
 You only call setup_nldb() when you want to set up a new database or reset an existing database to have empty tables.  It wipes the datbase clean.  Be careful.
 
 ### Nodes and Links
