@@ -21,7 +21,7 @@ nldb uses the file-based database SQLite to do the heavy lifting.\
 SQLite is a powerful and easy to use file-based database.  There is no server; instead, you direct the SQLite API to interact with a file on disk, then you use SQL with the SQLite API directly.\
 \
 To get nldb working with SQLite, get the [SQLite amalgamation](https://www.sqlite.org/download.html), get the "C source code as an amalgamation" one.
-Extract it and place the sqlite3.c and sqlite3.h files in a directory named sqlite at the same level as the nodelinkdb directory.\
+Extract it and place the sqlite3.c and sqlite3.h files in a directory named sqlite at the same level as the nodelinkdb directory.
 
 ## Building
 With the solution cloned and the sqlite directory set up alongside the solution directory, the solution should then build and you'll have a static library to link against and a test program to experiment with.
