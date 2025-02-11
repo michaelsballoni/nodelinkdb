@@ -40,11 +40,11 @@ nldb gives you two primary data structures to work with: nodes and links.
 #### Nodes
 In node.h you'll find the struct node:
 ```c++
-int64_t m_id;
-int64_t m_parentId;
-int64_t m_nameStringId;
-int64_t m_typeStringId;
-std::optional<std::wstring> m_payload;
+int64_t id;
+int64_t parentId;
+int64_t nameStringId;
+int64_t typeStringId;
+std::optional<std::wstring> payload;
 ```
 Every node has a 64-bit autonumbered primary key, a parent ID for hierarchies, the ID in the strings table of the node's name (think file name), the string ID of what type of node this is (think file vs. directory), and what the payload of the node is.  It's optional to indicate whether it was read from the database when this struct was loaded, and it probably was not.\
 \
@@ -56,11 +56,11 @@ With names, they can be anything but cannot contain /'s as these are reserved fo
 #### Links
 In link.h is the struct link:
 ```c++
-int64_t m_id;
-int64_t m_fromNodeId;
-int64_t m_toNodeId;
-int64_t m_typeStringId;
-std::optional<std::wstring> m_payload;
+int64_t id;
+int64_t fromNodeId;
+int64_t toNodeId;
+int64_t typeStringId;
+std::optional<std::wstring> payload;
 ```
 Every link has an autonumbered primary key, the node the link comes from, the node the link goes to, what type of link this is (think "resolved by" from Jira), and a payload like node has.\
 There is no null link.
@@ -163,19 +163,19 @@ From search.h:
 // Define the name-value pair to look for, optionally using LIKE for the lookup
 struct search_criteria 
 {
-    int64_t m_nameStringId;
-    std::wstring m_valueString;
-    bool m_useLike;
+    int64_t nameStringId;
+    std::wstring valueString;
+    bool useLike;
 };
 
 // Define the list of criteria to look for, and other search options
 struct search_query 
 {
-    std::vector<search_criteria> m_criteria;
-    std::wstring m_orderBy;
-    bool m_orderAscending;
-    int64_t m_limit;
-    bool m_includePayload;
+    std::vector<search_criteria> criteria;
+    std::wstring orderBy;
+    bool orderAscending;
+    int64_t limit;
+    bool includePayload;
 };
 
 class search
@@ -189,7 +189,39 @@ class search
 ```
 There are a few built-in search names that have special behaviors:
 1. parent: Results will all be direct children of the parent at the given path (shallow)
-2. path: Results will all be any descendent of the parent at the given path (deep)
+2. path: Results will all be descendent of the parent at the given path (deep)
 3. name: Results will match this name.  LIKE is supported.
 4. payload: Results will have payload that matches.  LIKE is supported.
 5. type: Results will be of the given type.  Exact match only.
+
+## Cloud Computing
+When working with nodes and links, a notion of clouds full of nodes connected by links comes to mind.\
+\
+In cloud.h you find...
+```c++
+// A cloudlink contains a normal link, and pointers to global copies of the related nodes.
+struct cloudlink
+{
+    link baseLink;
+    node* fromNode;
+    node* toNode;
+};
+
+class cloud
+{
+    cloud(db& db) : m_db(db) {}
+
+    // Start or reset with one node in particular.
+    // The cloud is initialized with the links in and out of that one node.
+    void seed(int64_t nodeId);
+
+    // Expand the cloud to include nodes linked to or from any of the nodes already in the cloud.
+    void expand(int generations);
+
+    // Reset this, freeing all memory.
+    void clear();
+
+    // Get the collected links in the cloud.
+    const std::vector<cloudlink>& links() const;
+};
+```
