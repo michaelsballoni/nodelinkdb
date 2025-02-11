@@ -148,6 +148,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\sqlite\sqlite3.h" />
+    <ClInclude Include="cloud.h" />
     <ClInclude Include="cmd.h" />
     <ClInclude Include="core.h" />
     <ClInclude Include="db.h" />
@@ -174,6 +175,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="cloud.cpp" />
     <ClCompile Include="cmd.cpp" />
     <ClCompile Include="core.cpp" />
     <ClCompile Include="dbreader.cpp" />

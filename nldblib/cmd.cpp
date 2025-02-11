@@ -59,7 +59,7 @@ void cmd::cd(const std::wstring& newPath)
 std::vector<std::wstring> cmd::dir()
 {
 	std::vector<std::wstring> paths;
-	for (auto child : nodes::get_children(m_db, m_cur.m_id))
+	for (auto child : nodes::get_children(m_db, m_cur.id))
 		paths.emplace_back(nodes::get_path_str(m_db, child));
 	std::sort(paths.begin(), paths.end());
 	return paths;
@@ -67,23 +67,23 @@ std::vector<std::wstring> cmd::dir()
 
 void cmd::mknode(const std::wstring& newNodeName)
 {
-	nodes::create(m_db, m_cur.m_id, strings::get_id(m_db, newNodeName));
+	nodes::create(m_db, m_cur.id, strings::get_id(m_db, newNodeName));
 }
 
 void cmd::copy(const std::wstring& newParentNode)
 {
-	nodes::copy(m_db, m_cur.m_id, get_node_from_path(newParentNode).m_id);
+	nodes::copy(m_db, m_cur.id, get_node_from_path(newParentNode).id);
 }
 
 void cmd::move(const std::wstring& newParentNode)
 {
-	nodes::move(m_db, m_cur.m_id, get_node_from_path(newParentNode).m_id);
+	nodes::move(m_db, m_cur.id, get_node_from_path(newParentNode).id);
 }
 
 void cmd::remove()
 {
-	int64_t orig_id = m_cur.m_id;
-	auto parent = nodes::get(m_db, m_cur.m_parentId);
+	int64_t orig_id = m_cur.id;
+	auto parent = nodes::get(m_db, m_cur.parentId);
 	nodes::remove(m_db, orig_id);
 	m_cur = parent;
 }
@@ -91,8 +91,8 @@ void cmd::remove()
 void cmd::rename(const std::wstring& newName)
 {
 	int64_t new_name_string_id = strings::get_id(m_db, newName);
-	nodes::rename(m_db, m_cur.m_id, new_name_string_id);
-	m_cur.m_nameStringId = new_name_string_id;
+	nodes::rename(m_db, m_cur.id, new_name_string_id);
+	m_cur.nameStringId = new_name_string_id;
 }
 
 void cmd::set_prop(const std::vector<std::wstring>& cmds)
@@ -102,28 +102,28 @@ void cmd::set_prop(const std::vector<std::wstring>& cmds)
 	else if (cmds.size() > 3)
 		throw nldberr("Specify the name and value of the property to set");
 	else if (cmds.size() == 2)
-		props::set(m_db, m_nodeItemTypeId, m_cur.m_id, strings::get_id(m_db, cmds[1]), -1);
+		props::set(m_db, m_nodeItemTypeId, m_cur.id, strings::get_id(m_db, cmds[1]), -1);
 	else
-		props::set(m_db, m_nodeItemTypeId, m_cur.m_id, strings::get_id(m_db, cmds[1]), strings::get_id(m_db, cmds[2]));
+		props::set(m_db, m_nodeItemTypeId, m_cur.id, strings::get_id(m_db, cmds[1]), strings::get_id(m_db, cmds[2]));
 }
 
 void cmd::set_payload(const std::wstring& payload)
 {
-	nodes::set_payload(m_db, m_cur.m_id, payload);
+	nodes::set_payload(m_db, m_cur.id, payload);
 }
 
 std::wstring cmd::tell()
 {
 	std::wstringstream stream;
 
-	stream << L"ID:      " << m_cur.m_id << L"\n";
-	stream << L"Name:    " << strings::get_val(m_db, m_cur.m_nameStringId) << L"\n";
+	stream << L"ID:      " << m_cur.id << L"\n";
+	stream << L"Name:    " << strings::get_val(m_db, m_cur.nameStringId) << L"\n";
 	stream << L"Parent:  " << nodes::get_path_str(m_db, m_cur) << L"\n";
 
-	auto payload_opt = nodes::get(m_db, m_cur.m_id).m_payload;
+	auto payload_opt = nodes::get(m_db, m_cur.id).payload;
 	stream << L"Payload: " << payload_opt.value_or(L"(not loaded)") << L"\n";
 
-	auto prop_string_ids = props::get(m_db, m_nodeItemTypeId, m_cur.m_id);
+	auto prop_string_ids = props::get(m_db, m_nodeItemTypeId, m_cur.id);
 	if (!prop_string_ids.empty())
 	{
 		stream << L"Properties:\n" << props::summarize(m_db, prop_string_ids) << L"\n";
@@ -131,22 +131,22 @@ std::wstring cmd::tell()
 	else
 		stream << L"Properties: (none)" << L"\n";
 
-	auto out_links = links::get_out_links(m_db, m_cur.m_id);
+	auto out_links = links::get_out_links(m_db, m_cur.id);
 	if (!out_links.empty())
 	{
 		stream << L"Out Links:" << L"\n";
 		for (const auto& out_link : out_links)
-			stream << nodes::get_path_str(m_db, nodes::get(m_db, out_link.m_toNodeId)) << L"\n";
+			stream << nodes::get_path_str(m_db, nodes::get(m_db, out_link.toNodeId)) << L"\n";
 	}
 	else
 		stream << L"Out Links: (none)" << L"\n";
 
-	auto in_links = links::get_in_links(m_db, m_cur.m_id);
+	auto in_links = links::get_in_links(m_db, m_cur.id);
 	if (!in_links.empty())
 	{
 		stream << L"In Links:" << L"\n";
 		for (const auto& in_link : in_links)
-			stream << nodes::get_path_str(m_db, nodes::get(m_db, in_link.m_fromNodeId)) << L"\n";
+			stream << nodes::get_path_str(m_db, nodes::get(m_db, in_link.fromNodeId)) << L"\n";
 	}
 	else
 		stream << L"In Links:  (none)" << L"\n";
@@ -183,13 +183,13 @@ std::wstring cmd::search(const std::vector<std::wstring>& cmd)
 void cmd::link(const std::wstring& toPath)
 {
 	auto to_node = get_node_from_path(toPath);
-	links::create(m_db, m_cur.m_id, to_node.m_id);
+	links::create(m_db, m_cur.id, to_node.id);
 }
 
 void cmd::unlink(const std::wstring& toPath)
 {
 	auto to_node = get_node_from_path(toPath);
-	links::remove(m_db, m_cur.m_id, to_node.m_id);
+	links::remove(m_db, m_cur.id, to_node.id);
 }
 
 std::vector<std::wstring> cmd::parse_cmds(const std::wstring& cmd)

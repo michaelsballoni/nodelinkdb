@@ -31,14 +31,14 @@ void loader::load_directory(const std::wstring& dirPath, const node& cur_node)
 		}
 
 		node new_node;
-		auto node_in_path = nodes::get_node_in_parent(m_db, cur_node.m_id, name_string_id);
+		auto node_in_path = nodes::get_node_in_parent(m_db, cur_node.id, name_string_id);
 		if (!node_in_path.has_value()) 
 		{
 			new_node =
 				nodes::create
 				(
 					m_db, 
-					cur_node.m_id, 
+					cur_node.id, 
 					name_string_id
 				);
 		}

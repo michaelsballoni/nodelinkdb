@@ -172,8 +172,8 @@ static std::wstring get_child_nodes_like(db& db, int64_t nodeId)
 
 void doCopy(db& db, const node& srcNode, const node& destNode)
 {
-	node new_node = nodes::create(db, destNode.m_id, srcNode.m_nameStringId, srcNode.m_typeStringId, srcNode.m_payload);
-	for (const auto& cur_node : nodes::get_children(db, srcNode.m_id))
+	node new_node = nodes::create(db, destNode.id, srcNode.nameStringId, srcNode.typeStringId, srcNode.payload);
+	for (const auto& cur_node : nodes::get_children(db, srcNode.id))
 		doCopy(db, cur_node, new_node);
 }
 
@@ -296,18 +296,34 @@ void nodes::remove(db& db, int64_t nodeId)
 		throw nldberr("nodes::remove: Node not removed: " + std::to_string(nodeId));
 }
 
-node nodes::get(db& db, int64_t nodeId) 
+node nodes::get(db& db, int64_t nodeId, bool loadPayload)
 {
-	auto reader =
-		db.execReader
-		(
-			L"SELECT parent_id, name_string_id, type_string_id, payload FROM nodes WHERE id = @nodeId",
-			{ { L"@nodeId", nodeId } }
-		);
-	if (!reader->read())
-		throw nldberr("nodes::get: Node not found: " + std::to_string(nodeId));
+	if (loadPayload)
+	{
+		auto reader =
+			db.execReader
+			(
+				L"SELECT parent_id, name_string_id, type_string_id, payload FROM nodes WHERE id = @nodeId",
+				{ { L"@nodeId", nodeId } }
+			);
+		if (!reader->read())
+			throw nldberr("nodes::get: Node not found: " + std::to_string(nodeId));
+		else
+			return node(nodeId, reader->getInt64(0), reader->getInt64(1), reader->getInt64(2), reader->getString(3));
+	}
 	else
-		return node(nodeId, reader->getInt64(0), reader->getInt64(1), reader->getInt64(2), reader->getString(3));
+	{
+		auto reader =
+			db.execReader
+			(
+				L"SELECT parent_id, name_string_id, type_string_id FROM nodes WHERE id = @nodeId",
+				{ { L"@nodeId", nodeId } }
+			);
+		if (!reader->read())
+			throw nldberr("nodes::get: Node not found: " + std::to_string(nodeId));
+		else
+			return node(nodeId, reader->getInt64(0), reader->getInt64(1), reader->getInt64(2));
+	}
 }
 
 void nodes::rename(db& db, int64_t nodeId, int64_t newNameStringId)
@@ -317,7 +333,7 @@ void nodes::rename(db& db, int64_t nodeId, int64_t newNameStringId)
 
 	checkName(strings::get_val(db, newNameStringId));
 
-	int64_t parent_id = get_parent(db, nodeId).m_id;
+	int64_t parent_id = get_parent(db, nodeId).id;
 	auto existing_node_opt = get_node_in_parent(db, parent_id, newNameStringId);
 	if (existing_node_opt.has_value())
 		throw nldberr("nodes::rename: Node with new name already exists: " + std::to_string(nodeId));
@@ -491,17 +507,17 @@ std::vector<node> nodes::get_path(db& db, const node& cur)
 	node cur_node = cur;
 	do
 	{
-		if (cur_node.m_id == 0)
+		if (cur_node.id == 0)
 			break;
 		else
 			output.emplace_back(cur_node);
 
-		cur_node = get_parent(db, cur_node.m_id);
-		if (seen_node_ids.find(cur_node.m_id) != seen_node_ids.end())
+		cur_node = get_parent(db, cur_node.id);
+		if (seen_node_ids.find(cur_node.id) != seen_node_ids.end())
 			break;
 		else
-			seen_node_ids.insert(cur_node.m_id);
-	} while (cur_node.m_id != 0);
+			seen_node_ids.insert(cur_node.id);
+	} while (cur_node.id != 0);
 	std::reverse(output.begin(), output.end());
 	return output;
 }
@@ -513,7 +529,7 @@ std::wstring nodes::get_path_str(db& db, const node& cur)
 	std::vector<int64_t> path_str_ids;
 	path_str_ids.reserve(path_nodes.size());
 	for (const auto& pnode : path_nodes)
-		path_str_ids.push_back(pnode.m_nameStringId);
+		path_str_ids.push_back(pnode.nameStringId);
 
 	auto strs_map = strings::get_vals(db, path_str_ids);
 
@@ -562,7 +578,7 @@ std::optional<std::vector<node>> nodes::get_path_nodes(db& db, const std::wstrin
 			return std::nullopt;
 
 		output.emplace_back(node_opt.value());
-		cur_node_id = node_opt.value().m_id;
+		cur_node_id = node_opt.value().id;
 	}
 
 	return output;
@@ -578,6 +594,6 @@ std::optional<std::wstring> nodes::get_path_to_parent_like(db& db, const std::ws
 	if (path_nodes.empty())
 		return std::nullopt;
 
-	std::wstring child_like = get_child_nodes_like(db, path_nodes.back().m_id);
+	std::wstring child_like = get_child_nodes_like(db, path_nodes.back().id);
 	return child_like;
 }

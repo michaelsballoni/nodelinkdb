@@ -164,6 +164,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="cloud.cpp" />
     <ClCompile Include="cmd.cpp" />
     <ClCompile Include="links.cpp" />
     <ClCompile Include="nodes.cpp" />

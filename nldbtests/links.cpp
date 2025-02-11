@@ -17,26 +17,26 @@ namespace nldb
 			node from_node = nodes::create(db, 0, strings::get_id(db, L"from"), 0);
 			node to_node = nodes::create(db, 0, strings::get_id(db, L"to"), 0);
 
-			link link = links::create(db, from_node.m_id, to_node.m_id, 0, L"pay-load");
+			link link = links::create(db, from_node.id, to_node.id, 0, L"pay-load");
 
-			auto from_links = links::get_out_links(db, from_node.m_id);
+			auto from_links = links::get_out_links(db, from_node.id);
 			Assert::AreEqual(size_t(1), from_links.size());
-			Assert::AreEqual(link.m_id, from_links[0].m_id);
+			Assert::AreEqual(link.id, from_links[0].id);
 
-			auto to_links = links::get_in_links(db, to_node.m_id);
+			auto to_links = links::get_in_links(db, to_node.id);
 			Assert::AreEqual(size_t(1), to_links.size());
-			Assert::AreEqual(link.m_id, to_links[0].m_id);
+			Assert::AreEqual(link.id, to_links[0].id);
 
-			auto from_link = links::get_link(db, from_links[0].m_id);
-			Assert::AreEqual(std::wstring(L"pay-load"), from_link.value().m_payload.value());
+			auto from_link = links::get_link(db, from_links[0].id);
+			Assert::AreEqual(std::wstring(L"pay-load"), from_link.value().payload.value());
 
-			Assert::IsTrue(links::remove(db, from_node.m_id, to_node.m_id, 0));
-			Assert::IsTrue(!links::remove(db, from_node.m_id, to_node.m_id, 0));
+			Assert::IsTrue(links::remove(db, from_node.id, to_node.id, 0));
+			Assert::IsTrue(!links::remove(db, from_node.id, to_node.id, 0));
 
-			auto from_links2 = links::get_out_links(db, from_node.m_id);
+			auto from_links2 = links::get_out_links(db, from_node.id);
 			Assert::IsTrue(from_links2.empty());
 
-			auto to_links2 = links::get_in_links(db, to_node.m_id);
+			auto to_links2 = links::get_in_links(db, to_node.id);
 			Assert::IsTrue(to_links2.empty());
 		}
 	};

@@ -4,33 +4,33 @@ namespace nldb
 {
 	struct node 
 	{
-		int64_t m_id;
-		int64_t m_parentId;
-		int64_t m_nameStringId;
-		int64_t m_typeStringId;
-		std::optional<std::wstring> m_payload;
+		int64_t id;
+		int64_t parentId;
+		int64_t nameStringId;
+		int64_t typeStringId;
+		std::optional<std::wstring> payload;
 
 		node(int64_t id = 0, int64_t parentId = 0, int64_t nameStringId = 0, int64_t typeStringId = 0, const std::optional<std::wstring>& payload = std::nullopt)
-			: m_id(id)
-			, m_parentId(parentId)
-			, m_nameStringId(nameStringId)
-			, m_typeStringId(typeStringId)
-			, m_payload(payload)
+			: id(id)
+			, parentId(parentId)
+			, nameStringId(nameStringId)
+			, typeStringId(typeStringId)
+			, payload(payload)
 		{
 		}
 
 		bool operator==(const node& other) const 
 		{
 			return
-				m_id == other.m_id
+				id == other.id
 				&&
-				m_parentId == other.m_parentId
+				parentId == other.parentId
 				&&
-				m_nameStringId == other.m_nameStringId
+				nameStringId == other.nameStringId
 				&&
-				m_typeStringId == other.m_typeStringId
+				typeStringId == other.typeStringId
 				&&
-				((!m_payload.has_value() || !other.m_payload.has_value()) || m_payload.value() == other.m_payload.value());
+				((!payload.has_value() || !other.payload.has_value()) || payload.value() == other.payload.value());
 		}
 		bool operator!=(const node& other) const {
 			return !operator==(other);

@@ -45,7 +45,6 @@ void nldb::setup_nldb(db& db)
 	db.execSql(L"CREATE UNIQUE INDEX link_from ON links (from_node_id, to_node_id, type_string_id)", {});
 	db.execSql(L"CREATE UNIQUE INDEX link_to ON links (to_node_id, from_node_id, type_string_id)", {});
 	db.execSql(L"CREATE INDEX link_payloads ON links (payload, id)", {});
-	db.execSql(L"INSERT INTO links (id, from_node_id, to_node_id, type_string_id) VALUES (0, 0, 0, 0)", {});
 
 	// props
 	db.execSql(L"DROP TABLE IF EXISTS props", {});

@@ -2,6 +2,7 @@
 
 #include "includes.h"
 
+#include "cloud.h"
 #include "cmd.h"
 #include "links.h"
 #include "loader.h"

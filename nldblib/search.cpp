@@ -79,7 +79,7 @@ std::wstring get_find_sql(db& db, const find_params& findParams, paramap& sqlPar
 			auto parent_path_opt = nodes::get_path_nodes(db, crit.m_valueString);
 			if (parent_path_opt.has_value())
 			{
-				int64_t parent_id = parent_path_opt.value().back().m_id;
+				int64_t parent_id = parent_path_opt.value().back().id;
 				where += L"Items.parent_id = " + std::to_wstring(parent_id);
 			}
 			else

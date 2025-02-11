@@ -15,7 +15,7 @@ namespace nldb
 
 		static void set_payload(db& db, int64_t nodeId, const std::wstring& payload);
 
-		static node get(db& db, int64_t nodeId);
+		static node get(db& db, int64_t nodeId, bool loadPayload = true);
 		static std::optional<node> get_node_in_parent(db& db, int64_t parentNodeId, int64_t nameStringId);
 
 		static node get_parent(db& db, int64_t nodeId);
