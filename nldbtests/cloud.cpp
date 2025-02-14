@@ -35,22 +35,15 @@ namespace nldb
 			auto links = cloud.links();
 			Assert::AreEqual(size_t(2), links.size());
 			Assert::IsTrue((links, link1.id));
-			Assert::IsTrue(hasCloudLink(links, link4.id));
+			Assert::IsTrue(hasLink(links, link4.id));
 
 			cloud.expand(1);
 			links = cloud.links();
 			Assert::AreEqual(size_t(4), links.size());
-			Assert::IsTrue(hasCloudLink(links, link1.id));
-			Assert::IsTrue(hasCloudLink(links, link2.id));
-			Assert::IsTrue(hasCloudLink(links, link3.id));
-			Assert::IsTrue(hasCloudLink(links, link4.id));
-
-			for (size_t i = 0; i < links.size(); ++i)
-			{
-				auto link = links[i];
-				Assert::AreEqual(link.baseLink.fromNodeId, link.fromNode->id);
-				Assert::AreEqual(link.baseLink.toNodeId, link.toNode->id);
-			}
+			Assert::IsTrue(hasLink(links, link1.id));
+			Assert::IsTrue(hasLink(links, link2.id));
+			Assert::IsTrue(hasLink(links, link3.id));
+			Assert::IsTrue(hasLink(links, link4.id));
 		}
 	};
 }

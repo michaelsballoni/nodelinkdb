@@ -10,33 +10,25 @@ void cloud::seed(int64_t nodeId)
 	clear();
 
 	for (const auto& link : links::get_in_links(m_db, nodeId))
-		m_links.emplace_back
-		(
-			link,
-			ensureNode(link.fromNodeId),
-			ensureNode(link.toNodeId)
-		);
+		m_links.emplace_back(link);
 
 	for (const auto& link : links::get_out_links(m_db, nodeId))
-		m_links.emplace_back
-		(
-			link,
-			ensureNode(link.fromNodeId),
-			ensureNode(link.toNodeId)
-		);
+		m_links.emplace_back(link);
 }
 
-void cloud::expand(int generations)
+std::vector<link> cloud::expand(int generations)
 {
+	std::vector<link> output;
+
 	for (int g = 1; g <= generations; ++g)
 	{
 		// get all nodes involved in our links
 		std::unordered_set<int64_t> cloud_node_ids;
 		cloud_node_ids.reserve(m_links.size() * 2U);
-		for (const cloudlink& link : m_links)
+		for (const link& link : m_links)
 		{
-			cloud_node_ids.insert(link.fromNode->id);
-			cloud_node_ids.insert(link.toNode->id);
+			cloud_node_ids.insert(link.fromNodeId);
+			cloud_node_ids.insert(link.toNodeId);
 		}
 
 		std::wstring cloud_node_ids_str;
@@ -51,7 +43,6 @@ void cloud::expand(int generations)
 		
 		// from the cloud and not to the cloud
 		size_t init_count = m_links.size();
-		std::vector<link> output;
 		{
 			std::wstring sql =
 				L"SELECT id, from_node_id, to_node_id, type_string_id FROM links "
@@ -61,12 +52,8 @@ void cloud::expand(int generations)
 			while (reader->read())
 			{
 				link cur_link(reader->getInt64(0), reader->getInt64(1), reader->getInt64(2), reader->getInt64(3));
-				m_links.emplace_back
-				(
-					cur_link,
-					ensureNode(cur_link.fromNodeId),
-					ensureNode(cur_link.toNodeId)
-				);
+				m_links.emplace_back(cur_link);
+				output.emplace_back(cur_link);
 			}
 		}
 
@@ -80,12 +67,8 @@ void cloud::expand(int generations)
 			while (reader->read())
 			{
 				link cur_link(reader->getInt64(0), reader->getInt64(1), reader->getInt64(2), reader->getInt64(3));
-				m_links.emplace_back
-				(
-					cur_link,
-					ensureNode(cur_link.fromNodeId),
-					ensureNode(cur_link.toNodeId)
-				);
+				m_links.emplace_back(cur_link);
+				output.emplace_back(cur_link);
 			}
 		}
 		size_t after_count = m_links.size();
@@ -94,24 +77,11 @@ void cloud::expand(int generations)
 		if (after_count == init_count)
 			break;
 	}
+
+	return output;
 }
 
 void cloud::clear()
 {
 	m_links.clear();
-
-	for (auto it : m_nodeMap)
-		delete it.second;
-	m_nodeMap.clear();
-}
-
-node* cloud::ensureNode(int64_t nodeId)
-{
-	auto it = m_nodeMap.find(nodeId);
-	if (it != m_nodeMap.end())
-		return it->second;
-
-	node* new_node = new node(nodes::get(m_db, nodeId));
-	m_nodeMap.insert({ nodeId, new_node });
-	return new_node;
 }

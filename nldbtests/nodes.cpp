@@ -102,12 +102,10 @@ namespace nldb
 
 			// set a payload
 			nodes::set_payload(db, node2.id, L"foobletbarmonkey");
-			Assert::AreEqual(std::wstring(L"foobletbarmonkey"), nodes::get(db, node2.id).payload.value());
-			Assert::AreEqual(false, nodes::get(db, node2.id, false).payload.has_value());
+			Assert::AreEqual(std::wstring(L"foobletbarmonkey"), nodes::get_payload(db, node2.id));
 
 			nodes::set_payload(db, node2.id, L"");
-			Assert::AreEqual(std::wstring(L""), nodes::get(db, node2.id).payload.value());
-			Assert::AreEqual(false, nodes::get(db, node2.id, false).payload.has_value());
+			Assert::AreEqual(std::wstring(L""), nodes::get_payload(db, node2.id));
 
 			// rename the second node
 			try

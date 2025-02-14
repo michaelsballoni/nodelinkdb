@@ -55,18 +55,32 @@ bool links::remove(db& db, int64_t fromNodeId, int64_t toNodeId, int64_t typeStr
 	return affected > 0;
 }
 
-std::optional<link> links::get_link(db& db, int64_t linkId)
+link links::get(db& db, int64_t linkId)
 {
 	auto reader =
 		db.execReader
 		(
-			L"SELECT id, from_node_id, to_node_id, type_string_id, payload FROM links WHERE id = @linkId",
+			L"SELECT from_node_id, to_node_id, type_string_id FROM links WHERE id = @linkId",
 			{ { L"@linkId", linkId } }
 		);
 	if (!reader->read())
-		return std::nullopt;
+		throw nldberr("links::get: Link not found: " + std::to_string(linkId));
 	else
-		return link(reader->getInt64(0), reader->getInt64(1), reader->getInt64(2), reader->getInt64(3), reader->getString(4));
+		return link(linkId, reader->getInt64(0), reader->getInt64(1), reader->getInt64(2));
+}
+
+std::wstring links::get_payload(db& db, int64_t linkId)
+{
+	auto reader =
+		db.execReader
+		(
+			L"SELECT payload FROM links WHERE id = @linkId",
+			{ { L"@linkId", linkId } }
+		);
+	if (!reader->read())
+		throw nldberr("links::get_payload: Link not found: " + std::to_string(linkId));
+	else
+		return reader->getString(0);
 }
 
 std::vector<link> links::get_out_links(db& db, int64_t fromNodeId)

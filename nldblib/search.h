@@ -31,21 +31,19 @@ namespace nldb
 		std::wstring m_orderBy;
 		bool m_orderAscending;
 		int64_t m_limit;
-		bool m_includePayload;
+		bool m_includePayload = false;
 
 		search_query
 		(
 			const std::vector<search_criteria>& criteria = {}, 
 			const std::wstring& orderBy = L"", 
-			bool orderAscending = true, 
-			int limit = -1, 
-			bool includePayload = false
+			bool orderAscending = true,
+			int limit = -1
 		)
 		: m_criteria(criteria)
 		, m_orderBy(orderBy)
 		, m_orderAscending(orderAscending)
 		, m_limit(limit)
-		, m_includePayload(includePayload)
 		{
 		}
 	};

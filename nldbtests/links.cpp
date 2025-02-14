@@ -27,8 +27,8 @@ namespace nldb
 			Assert::AreEqual(size_t(1), to_links.size());
 			Assert::AreEqual(link.id, to_links[0].id);
 
-			auto from_link = links::get_link(db, from_links[0].id);
-			Assert::AreEqual(std::wstring(L"pay-load"), from_link.value().payload.value());
+			auto from_link = links::get(db, from_links[0].id);
+			Assert::AreEqual(std::wstring(L"pay-load"), links::get_payload(db, from_link.id));
 
 			Assert::IsTrue(links::remove(db, from_node.id, to_node.id, 0));
 			Assert::IsTrue(!links::remove(db, from_node.id, to_node.id, 0));

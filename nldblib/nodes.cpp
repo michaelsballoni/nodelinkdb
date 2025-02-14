@@ -207,6 +207,8 @@ void nodes::move(db& db, int64_t nodeId, int64_t newParentNodeId)
 	if (nodeId == 0)
 		throw nldberr("nodes::move: Cannot move null node");
 
+	invalidate_cache(nodeId);
+
 	// collect all children nodes
 	std::wstring child_nodes_like = get_child_nodes_like(db, nodeId);
 	std::vector<int64_t> child_node_ids;
@@ -244,6 +246,7 @@ void nodes::move(db& db, int64_t nodeId, int64_t newParentNodeId)
 	}
 
 	// update the parents of all children nodes
+	invalidate_cache(child_node_ids);
 	for (auto child_id : child_node_ids)
 	{
 		std::wstring parents_str = ids_to_parents_str(get_parents_node_ids(db, child_id));
@@ -266,6 +269,7 @@ void nodes::remove(db& db, int64_t nodeId)
 	// check inputs
 	if (nodeId == 0)
 		throw nldberr("nodes::remove: Cannot remove node: " + std::to_string(nodeId));
+	invalidate_cache(nodeId);
 
 	// collect all children node IDs
 	std::vector<int64_t> child_node_ids;
@@ -279,6 +283,7 @@ void nodes::remove(db& db, int64_t nodeId)
 		while (child_reader->read())
 			child_node_ids.push_back(child_reader->getInt64(0));
 	}
+	invalidate_cache(child_node_ids);
 
 	// delete the children nodes
 	if (!child_node_ids.empty())
@@ -296,33 +301,80 @@ void nodes::remove(db& db, int64_t nodeId)
 		throw nldberr("nodes::remove: Node not removed: " + std::to_string(nodeId));
 }
 
-node nodes::get(db& db, int64_t nodeId, bool loadPayload)
+std::shared_mutex g_nodeCacheLock;
+std::unordered_map<int64_t, node*> g_nodeCache;
+
+node nodes::get(db& db, int64_t nodeId)
 {
-	if (loadPayload)
 	{
-		auto reader =
-			db.execReader
-			(
-				L"SELECT parent_id, name_string_id, type_string_id, payload FROM nodes WHERE id = @nodeId",
-				{ { L"@nodeId", nodeId } }
-			);
-		if (!reader->read())
-			throw nldberr("nodes::get: Node not found: " + std::to_string(nodeId));
-		else
-			return node(nodeId, reader->getInt64(0), reader->getInt64(1), reader->getInt64(2), reader->getString(3));
+		std::shared_lock<std::shared_mutex> read_lock(g_nodeCacheLock);
+		auto it = g_nodeCache.find(nodeId);
+		if (it != g_nodeCache.end())
+			return *it->second;
 	}
-	else
+
+	auto reader =
+		db.execReader
+		(
+			L"SELECT parent_id, name_string_id, type_string_id FROM nodes WHERE id = @nodeId",
+			{ { L"@nodeId", nodeId } }
+		);
+	if (!reader->read())
+		throw nldberr("nodes::get: Node not found: " + std::to_string(nodeId));
+
 	{
-		auto reader =
-			db.execReader
+		std::unique_lock<std::shared_mutex> write_lock(g_nodeCacheLock);
+
+		auto it = g_nodeCache.find(nodeId);
+		if (it != g_nodeCache.end())
+		{
+			delete it->second;
+			g_nodeCache.erase(it);
+		}
+
+		node* new_node =
+			new node
 			(
-				L"SELECT parent_id, name_string_id, type_string_id FROM nodes WHERE id = @nodeId",
-				{ { L"@nodeId", nodeId } }
+				nodeId, 
+				reader->getInt64(0), 
+				reader->getInt64(1), 
+				reader->getInt64(2)
 			);
-		if (!reader->read())
-			throw nldberr("nodes::get: Node not found: " + std::to_string(nodeId));
-		else
-			return node(nodeId, reader->getInt64(0), reader->getInt64(1), reader->getInt64(2));
+		g_nodeCache.insert({ nodeId, new_node });
+		return *new_node;
+	}
+}
+
+void nodes::flush_cache()
+{
+	std::unique_lock<std::shared_mutex> write_lock(g_nodeCacheLock);
+	for (auto it : g_nodeCache)
+		delete it.second;
+	g_nodeCache.clear();
+}
+
+void nodes::invalidate_cache(int64_t nodeId)
+{
+	std::unique_lock<std::shared_mutex> write_lock(g_nodeCacheLock);
+	auto it = g_nodeCache.find(nodeId);
+	if (it != g_nodeCache.end())
+	{
+		delete it->second;
+		g_nodeCache.erase(it);
+	}
+}
+
+void nodes::invalidate_cache(const std::vector<int64_t>& nodeIds)
+{
+	std::unique_lock<std::shared_mutex> write_lock(g_nodeCacheLock);
+	for (int64_t node_id : nodeIds)
+	{
+		auto it = g_nodeCache.find(node_id);
+		if (it != g_nodeCache.end())
+		{
+			delete it->second;
+			g_nodeCache.erase(it);
+		}
 	}
 }
 
@@ -349,6 +401,20 @@ void nodes::rename(db& db, int64_t nodeId, int64_t newNameStringId)
 		);
 	if (affected != 1)
 		throw nldberr("nodes::rename: Node not renamed: " + std::to_string(nodeId));
+}
+
+std::wstring nodes::get_payload(db& db, int64_t nodeId)
+{
+	auto reader =
+		db.execReader
+		(
+			L"SELECT payload FROM nodes WHERE id = @nodeId",
+			{ { L"@nodeId", nodeId } }
+		);
+	if (!reader->read())
+		throw nldberr("nodes::get_payload: Node not found: " + std::to_string(nodeId));
+	else
+		return reader->getString(0);
 }
 
 void nodes::set_payload(db& db, int64_t nodeId, const std::wstring& payload)

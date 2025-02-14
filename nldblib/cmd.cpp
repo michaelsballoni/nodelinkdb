@@ -119,9 +119,7 @@ std::wstring cmd::tell()
 	stream << L"ID:      " << m_cur.id << L"\n";
 	stream << L"Name:    " << strings::get_val(m_db, m_cur.nameStringId) << L"\n";
 	stream << L"Parent:  " << nodes::get_path_str(m_db, m_cur) << L"\n";
-
-	auto payload_opt = nodes::get(m_db, m_cur.id).payload;
-	stream << L"Payload: " << payload_opt.value_or(L"(not loaded)") << L"\n";
+	stream << L"Payload: " << nodes::get_payload(m_db, m_cur.id) << L"\n";
 
 	auto prop_string_ids = props::get(m_db, m_nodeItemTypeId, m_cur.id);
 	if (!prop_string_ids.empty())

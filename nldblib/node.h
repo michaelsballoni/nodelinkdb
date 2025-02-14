@@ -28,9 +28,7 @@ namespace nldb
 				&&
 				nameStringId == other.nameStringId
 				&&
-				typeStringId == other.typeStringId
-				&&
-				((!payload.has_value() || !other.payload.has_value()) || payload.value() == other.payload.value());
+				typeStringId == other.typeStringId;
 		}
 		bool operator!=(const node& other) const {
 			return !operator==(other);
