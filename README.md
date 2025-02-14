@@ -94,11 +94,14 @@ void remove(db& db, int64_t nodeId);
 // Change the name of a node
 void rename(db& db, int64_t nodeId, int64_t newNameStringId);
 
-// Set the payload onto a node
-void set_payload(db& db, int64_t nodeId, const std::wstring& payload);
-
-// Get a node; this loads the payload
+// Get a node
 node get(db& db, int64_t nodeId);
+
+// Get the payload of a node
+std::wstring get_payload(db& db, int64_t nodeId);
+
+// Set a payload onto a node
+void set_payload(db& db, int64_t nodeId, const std::wstring& payload);
 
 // Look in a parent node for a child node with a given name
 std::optional<node> get_node_in_parent(db& db, int64_t parentNodeId, int64_t nameStringId);
@@ -132,7 +135,13 @@ link create(db& db, int64_t fromNodeId, int64_t toNodeId, int64_t typeStringId =
 bool remove(db& db, int64_t fromNodeId, int64_t toNodeId, int64_t typeStringId = 0);
 
 // Give a link ID, get back the link, or std::nullopt
-std::optional<link> get_link(db& db, int64_t linkId);
+std::optional<link> get(db& db, int64_t linkId);
+
+// Get the payload of a link
+std::wstring get_payload(db& db, int64_t nodeId);
+
+// Set a payload onto a link
+void set_payload(db& db, int64_t nodeId, const std::wstring& payload);
 
 // Get out links from a node
 std::vector<link> get_out_links(db& db, int64_t fromNodeId);
@@ -199,14 +208,6 @@ When working with nodes and links, a notion of clouds full of nodes connected by
 \
 In cloud.h you find...
 ```c++
-// A cloudlink contains a normal link, and pointers to global copies of the related nodes.
-struct cloudlink
-{
-    link baseLink;
-    node* fromNode;
-    node* toNode;
-};
-
 class cloud
 {
     cloud(db& db) : m_db(db) {}
@@ -216,12 +217,13 @@ class cloud
     void seed(int64_t nodeId);
 
     // Expand the cloud to include nodes linked to or from any of the nodes already in the cloud.
-    void expand(int generations);
+    // Returns links added during the function call for incremental updates by clients.
+    std::vector<link> expand(int generations);
 
     // Reset this, freeing all memory.
     void clear();
 
     // Get the collected links in the cloud.
-    const std::vector<cloudlink>& links() const;
+    const std::vector<link>& links() const;
 };
 ```
