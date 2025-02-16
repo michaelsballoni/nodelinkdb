@@ -1,38 +1,45 @@
 # nodelinkdb
 Node Link DB, nldb for short, gives you the power of a graph database in your C++ application.\
-As far as nldb goes, being a graph database is nothing fancier than nodes and links and properties.\
+As far as nldb goes, being a graph database is nothing fancier than nodes, links between nodes, and properties on nodes and links.\
 More background on graph databases can be found on [Wikipedia](https://en.wikipedia.org/wiki/Graph_database).
 
 ## Projects
-The repos root directory is a Visual Studio solution containing the following projects:\
+The repo root directory is a solution that contains the following projects:
+
 ### nldblib
-The nldblib project is the static library you integrate into your project.\
-Include "nldb.h" and it includes everything that you need to use nldblib.
+The nldblib project is the library you integrate into your project.\
+Include "nldb.h" and it includes everything that you need to use nldblib.\
+Add #pragma comment(lib, "nldblib.lib") with your library directory set up, and you're all set.
 
 ### nldb
 The nldb project is a command-line proof-of-concept.  It is not the central project; nldblib is.\
-This project is just for putting the library through its paces with a ready supply of graph data, the file system.
+This project is just for putting the library through its paces with a ready supply of graph data: the file system.
 
 ### nldbtests
-The nldbtests project contains the unit tests for the project.
+The nldbtests project contains the unit tests for the nldblib project.
 
 ## SQLite integration
 nldb uses the file-based database SQLite to do the heavy lifting.\
-SQLite is a powerful and easy to use file-based database.  There is no server; instead, you direct the SQLite API to interact with a file on disk, then you use SQL with the SQLite API directly.\
+SQLite is a powerful and easy to use file-based database.
+There is no server; instead, you direct the SQLite API to use a file on disk, 
+and do database operations using SQL.\
 \
-To get nldb working with SQLite, get the [SQLite amalgamation](https://www.sqlite.org/download.html), get the "C source code as an amalgamation" one.
-Extract it and place the sqlite3.c and sqlite3.h files in a directory named sqlite at the same level as the nodelinkdb directory.
+To get nldb working with SQLite, get the 
+[SQLite amalgamation](https://www.sqlite.org/download.html), get the "C source code as an amalgamation, version ..." ZIP.
+Extract it, go into the folder, then copy the sqlite3.c and sqlite3.h files into a directory named sqlite at the same level as the nodelinkdb directory.
 
 ## Building
-With the solution cloned and the sqlite directory set up alongside the solution directory, the solution should then build and you'll have a static library to link against and a test program to experiment with.
+With the solution cloned and the sqlite directory set up alongside the solution directory, 
+the solution should then build and you'll have a static library to link against and a test program to experiment with.
 
 ## Code Walkthrough
 ### Setting Up
-The nldb namespace is used throughout.  Static classes in this workspace are what you call into from your code.\
-First, though, this is a database-driven system, so you'll use the db class, with the constructor that takes the path to the database filename.\
-Create a db object with the path to the file you want to use.\
+The nldb namespace is used throughout.  Classes in this workspace are what you call into from your code.\
+This is a database-driven system, so you'll use the db class, with the constructor that takes the path to the database filename.\
+Create a db object with the file path where you want your database.  A .db extension is common, but none of this code cares.\
 If you're creating a new database call the global function nldb::setup_nldb(db) to initialize the database with the tables.\
-You only call setup_nldb() when you want to set up a new database or reset an existing database to have empty tables.  It wipes the datbase clean.  Be careful.
+You only call setup_nldb() when you want to set up a new database or reset an existing database to have empty tables.  
+It wipes the datbase clean.  Be careful.
 
 ### Nodes and Links
 nldb gives you two primary data structures to work with: nodes and links.
@@ -46,9 +53,16 @@ int64_t nameStringId;
 int64_t typeStringId;
 std::optional<std::wstring> payload;
 ```
-Every node has a 64-bit autonumbered primary key, a parent ID for hierarchies, the ID in the strings table of the node's name (think file name), the string ID of what type of node this is (think file vs. directory), and what the payload of the node is.  It's optional to indicate whether it was read from the database when this struct was loaded, and it probably was not.\
+Every node has 
+a 64-bit autonumbered primary key, 
+a parent ID for hierarchies, 
+the ID in the strings table of the node's name (think filename), 
+the string ID of what type of node this is (think file vs. directory), 
+and what the payload of the node is.  
+The payload is  optional to indicate whether it was read from the database when this struct was loaded.\
 \
-There is a special node, the null node, with ID and parent ID of zero.  You can always get it and it's never modified.\
+There is a special node, the null node, zero ID and parent ID.  You can always get it and it's never modified.\
+\
 Within a parent, names must be unique, irregardless of type, like in a file system.\
 \
 With names, they can be anything but cannot contain /'s as these are reserved for hierarchical string paths.
@@ -62,11 +76,18 @@ int64_t toNodeId;
 int64_t typeStringId;
 std::optional<std::wstring> payload;
 ```
-Every link has an autonumbered primary key, the node the link comes from, the node the link goes to, what type of link this is (think "resolved by" from Jira), and a payload like node has.\
+Every link has 
+an autonumbered primary key, 
+the ID of node the link comes from, 
+the ID of node the link goes to, 
+what type of link this is (think "resolved by" from Jira),
+and a payload, like node has.\
+\
 There is no null link.
 
 #### Strings
-As you gather, there's a string table with all unique strings in the system, and nldb leans hard on this string table for every identifier in the system.\
+As you gather, there's a string table with all unique strings in the system, 
+and nldb leans hard on this string table for every identifier in the system.\
 Only payloads cause string storage in the DB outside the string table.
 ```c++
 int64_t get_id(db& db, const std::wstring& str);
@@ -74,12 +95,12 @@ std::wstring get_val(db& db, int64_t id);
 std::unordered_map<int64_t, std::wstring> get_vals(db& db, const std::vector<int64_t>& ids);
 void flush_caches();
 ```
-Strings are cached in memory, forwards and back; call flush_caches() to empty these caches.
+Strings are cached in memory, forwards and back; call strings::flush_caches() to empty these caches.
 
 ### Node Operations
 From nodes.h:
 ```c++
-// Create a node, optionally specifying a type and passing in its payload
+// Create a node, optionally specifying a type and payload
 node create(db& db, int64_t parentNodeId, int64_t nameStringId, int64_t typeStringId = 0, const std::optional<std::wstring>& payload = std::nullopt);
 
 // Copy a node under another parent node
@@ -95,7 +116,12 @@ void remove(db& db, int64_t nodeId);
 void rename(db& db, int64_t nodeId, int64_t newNameStringId);
 
 // Get a node
+// The nodes class maintains a global cache node ID => node pointer
+// This cache only returns copies, and it uses RW locks, so it's thread-safe
+// All nodes class function invalidate the cache as they modify things
 node get(db& db, int64_t nodeId);
+void invalidate_cache(int64_t nodeId);
+void invalidate_cache(const std::vector<int64_t>& nodeIds);
 
 // Get the payload of a node
 std::wstring get_payload(db& db, int64_t nodeId);
@@ -151,7 +177,8 @@ std::vector<link> get_in_links(db& db, int64_t toNodeId);
 ```
 
 ## Properties and Search
-With properties you can associate name-value pairs of strings with nodes and links, then look up nodes and links by names and values, with the search class.\
+With properties you can associate name-value pairs of strings with nodes and links, 
+then look up nodes and links by names and values, with the search class.\
 \
 From props.h:
 ```c++

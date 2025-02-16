@@ -9,11 +9,6 @@ namespace nldb
 	{
 	public:
 		cloud(db& db) : m_db(db) {}
-		
-		~cloud() 
-		{
-			clear();
-		}
 
 		void seed(int64_t nodeId);
 		std::vector<link> expand(int generations);

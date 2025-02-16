@@ -20,18 +20,22 @@ std::vector<link> cloud::expand(int generations)
 {
 	std::vector<link> output;
 
+	// track nodes in the cloud
+	std::unordered_set<int64_t> cloud_node_ids;
+	cloud_node_ids.reserve(m_links.size() * 2U);
+	for (const link& link : m_links)
+	{
+		cloud_node_ids.insert(link.fromNodeId);
+		cloud_node_ids.insert(link.toNodeId);
+	}
+
+	// a string of all node IDs in the cloud
+	std::wstring cloud_node_ids_str;
+
 	for (int g = 1; g <= generations; ++g)
 	{
-		// get all nodes involved in our links
-		std::unordered_set<int64_t> cloud_node_ids;
-		cloud_node_ids.reserve(m_links.size() * 2U);
-		for (const link& link : m_links)
-		{
-			cloud_node_ids.insert(link.fromNodeId);
-			cloud_node_ids.insert(link.toNodeId);
-		}
-
-		std::wstring cloud_node_ids_str;
+		// populate the string of existing node IDs
+		cloud_node_ids_str.clear();
 		for (int64_t id : cloud_node_ids)
 		{
 			if (!cloud_node_ids_str.empty())
@@ -39,7 +43,7 @@ std::vector<link> cloud::expand(int generations)
 			cloud_node_ids_str += std::to_wstring(id);
 		}
 
-		// get new links from the cloud...
+		// get new links to grow the cloud...
 		
 		// from the cloud and not to the cloud
 		size_t init_count = m_links.size();
@@ -52,8 +56,12 @@ std::vector<link> cloud::expand(int generations)
 			while (reader->read())
 			{
 				link cur_link(reader->getInt64(0), reader->getInt64(1), reader->getInt64(2), reader->getInt64(3));
+
 				m_links.emplace_back(cur_link);
 				output.emplace_back(cur_link);
+
+				cloud_node_ids.insert(cur_link.fromNodeId);
+				cloud_node_ids.insert(cur_link.toNodeId);
 			}
 		}
 
@@ -67,8 +75,12 @@ std::vector<link> cloud::expand(int generations)
 			while (reader->read())
 			{
 				link cur_link(reader->getInt64(0), reader->getInt64(1), reader->getInt64(2), reader->getInt64(3));
+
 				m_links.emplace_back(cur_link);
 				output.emplace_back(cur_link);
+
+				cloud_node_ids.insert(cur_link.fromNodeId);
+				cloud_node_ids.insert(cur_link.toNodeId);
 			}
 		}
 		size_t after_count = m_links.size();
