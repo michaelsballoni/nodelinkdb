@@ -15,12 +15,6 @@ namespace nldb
 			db db("tests.cloud.db");
 			setup_nldb(db);
 
-			cloud cloud(db);
-			cloud.seed(0);
-			Assert::IsTrue(cloud.links().empty());
-			cloud.expand(10);
-			Assert::IsTrue(cloud.links().empty());
-
 			auto node1 = nodes::create(db, 0, strings::get_id(db, L"node1"), 0);
 			auto node2 = nodes::create(db, 0, strings::get_id(db, L"node2"), 0);
 			auto node3 = nodes::create(db, 0, strings::get_id(db, L"node3"), 0);
@@ -31,14 +25,37 @@ namespace nldb
 			auto link3 = links::create(db, node3.id, node4.id);
 			auto link4 = links::create(db, node4.id, node1.id);
 
-			cloud.seed(link1.id);
-			auto links = cloud.links();
+			cloud cloud(db, node1.id);
+			cloud.init();
+			Assert::AreEqual(int64_t(2), cloud.seed());
+			Assert::AreEqual(0, cloud.max_generation());
+			auto links = cloud.links(0);
 			Assert::AreEqual(size_t(2), links.size());
 			Assert::IsTrue((links, link1.id));
 			Assert::IsTrue(hasLink(links, link4.id));
 
-			cloud.expand(1);
-			links = cloud.links();
+			Assert::AreEqual(int64_t(2), cloud.expand());
+			Assert::AreEqual(1, cloud.max_generation());
+			links = cloud.links(cloud.max_generation());
+			Assert::AreEqual(size_t(2), links.size());
+			Assert::IsTrue(hasLink(links, link2.id));
+			Assert::IsTrue(hasLink(links, link3.id));
+
+			links = cloud.links(0);
+			Assert::AreEqual(size_t(4), links.size());
+			Assert::IsTrue(hasLink(links, link1.id));
+			Assert::IsTrue(hasLink(links, link2.id));
+			Assert::IsTrue(hasLink(links, link3.id));
+			Assert::IsTrue(hasLink(links, link4.id));
+
+			Assert::AreEqual(int64_t(0), cloud.expand());
+			Assert::AreEqual(1, cloud.max_generation());
+			links = cloud.links(cloud.max_generation());
+			Assert::AreEqual(size_t(2), links.size());
+			Assert::IsTrue(hasLink(links, link2.id));
+			Assert::IsTrue(hasLink(links, link3.id));
+
+			links = cloud.links(0);
 			Assert::AreEqual(size_t(4), links.size());
 			Assert::IsTrue(hasLink(links, link1.id));
 			Assert::IsTrue(hasLink(links, link2.id));

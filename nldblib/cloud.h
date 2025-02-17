@@ -8,19 +8,22 @@ namespace nldb
 	class cloud
 	{
 	public:
-		cloud(db& db) : m_db(db) {}
+		cloud(db& db, int64_t seedNodeId)
+		: m_db(db)
+		, m_seedNodeId(seedNodeId)
+		, m_tableName(L"cloudlinks_" + std::to_wstring(m_seedNodeId))
+		{}
 
-		void seed(int64_t nodeId);
-		std::vector<link> expand(int generations);
-		void clear();
+		void init();
+		int64_t seed();
+		int64_t expand();
 
-		const std::vector<link>& links() const 
-		{
-			return m_links;
-		}
+		int max_generation() const;
+		std::vector<link> links(int minGeneration) const;
 
 	private:
 		db& m_db;
-		std::vector<link> m_links;
+		int64_t m_seedNodeId;
+		std::wstring m_tableName;
 	};
 }
