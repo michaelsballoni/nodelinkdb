@@ -237,20 +237,25 @@ In cloud.h you find...
 ```c++
 class cloud
 {
-    cloud(db& db) : m_db(db) {}
+    // You start with a seed node
+    cloud(db& db, int64_t seedNodeId) {}
 
-    // Start or reset with one node in particular.
-    // The cloud is initialized with the links in and out of that one node.
-    void seed(int64_t nodeId);
+    // You create a database table based on the seed node ID
+    void init();
 
-    // Expand the cloud to include nodes linked to or from any of the nodes already in the cloud.
-    // Returns links added during the function call for incremental updates by clients.
-    std::vector<link> expand(int generations);
+    // You seed the cloud with the immediate links from and to the node
+    // Returns the number of links added
+    // NOTE: The seed node must have at least one link for this to work
+    int64_t seed();
 
-    // Reset this, freeing all memory.
-    void clear();
+    // Grow the cloud out from the current set of links
+    // Returns the number of links added
+    int64_t expand();
 
-    // Get the collected links in the cloud.
-    const std::vector<link>& links() const;
+    // What is the maximum generation in the cloud?
+    int max_generation() const;
+
+    // What are the links, starting out from the given minimum generation?
+    std::vector<link> links(int minGeneration) const;
 };
 ```
